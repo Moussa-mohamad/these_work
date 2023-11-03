@@ -1,0 +1,36 @@
+Loading
+Dead loads
+Concentrated loads(global axis)
+Edge	xdir	ydir	moment	refnode	dxb	dyb
+
+block	xdir	ydir	moment refnode	dxb	dyb	
+
+Continuous loads
+Edge	xdir	ydir	refnode	dxstart	dystart	dxend	dyend
+
+
+Block	xdir	ydir	
+1	0	-0.142857
+2	0	-0.142857
+3	0	-0.142857
+4	0	-0.142857
+5	0	-0.142857
+6	0	-0.142857
+7	0	-0.142857
+8	0	-0.142857
+9	0	-0.142857
+10	0	-0.142857
+11	0	-0.142857
+Live loads
+Concentrated loads(global axis)
+Edge	xdir	ydir	moment	refnode	dxb	dyb
+
+block	xdir	ydir	moment refnode	dxb	dyb
+
+Continuous loads
+Edge	xdir	ydir	refnode	dxstart	dystart	dxend	dyend
+
+
+Block	xdir	ydir		
+4	0.142857	0
+

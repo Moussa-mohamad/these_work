@@ -1,0 +1,48 @@
+Strength
+Edge	cohesion	friction angle	compression_limit	tension_limit
+1	10	35	9000	0
+2	10	35	9000	0
+4	10	35	9000	0
+5	10	35	9000	0
+8	10	35	9000	0
+
+
+Support
+Edge	tandisp	normaldisp	rotation
+1	0	0	0
+2	0	0	0
+
+Loading
+Dead loads
+Concentrated loads(global axis)
+Edge	xdir	ydir	moment	refnode	dxb	dyb
+
+
+block	xdir	ydir	moment refnode	dxb	dyb
+1	0	-1	0	1	0.2	0.1
+2	0	-1	0	2	0.2	0.1
+
+Continuous loads
+Edge	xdir	ydir	refnode	dxstart	dystart	dxend	dyend
+
+
+
+Block	xdir	ydir	
+3	0	-12.5
+
+Live loads
+Concentrated loads(global axis)
+Edge	xdir	ydir	moment	refnode	dxb	dyb
+
+
+block	xdir	ydir	moment refnode	dxb	dyb
+1	-1	0	0	1	0.2	0.1
+1	0	0	0	1	0.2	0.1
+Continuous loads
+Edge	xdir	ydir	refnode	dxstart	dystart	dxend	dyend
+
+
+Block	xdir	ydir		
+
+
+
