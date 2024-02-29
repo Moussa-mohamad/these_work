@@ -2619,6 +2619,14 @@ static CYTHON_INLINE void __Pyx_SafeReleaseBuffer(Py_buffer* info);
 static Py_ssize_t __Pyx_minusones[] = { -1, -1, -1, -1, -1, -1, -1, -1 };
 static Py_ssize_t __Pyx_zeros[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
+/* PyIntBinop.proto */
+#if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_MultiplyCObj(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
+#else
+#define __Pyx_PyInt_MultiplyCObj(op1, op2, intval, inplace, zerodivision_check)\
+    (inplace ? PyNumber_InPlaceMultiply(op1, op2) : PyNumber_Multiply(op1, op2))
+#endif
+
 /* PyObject_GenericGetAttrNoDict.proto */
 #if CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP && PY_VERSION_HEX < 0x03070000
 static CYTHON_INLINE PyObject* __Pyx_PyObject_GenericGetAttrNoDict(PyObject* obj, PyObject* attr_name);
@@ -3031,14 +3039,14 @@ static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
-/* None.proto */
-#include <new>
-
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+
+/* None.proto */
+#include <new>
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *);
@@ -3176,6 +3184,8 @@ static const char __pyx_k_[] = ": ";
 static const char __pyx_k_O[] = "O";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_i[] = "i";
+static const char __pyx_k_j[] = "j";
+static const char __pyx_k_k[] = "k";
 static const char __pyx_k__2[] = ".";
 static const char __pyx_k__3[] = "*";
 static const char __pyx_k__6[] = "'";
@@ -3189,7 +3199,6 @@ static const char __pyx_k_and[] = " and ";
 static const char __pyx_k_got[] = " (got ";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
-static const char __pyx_k_res[] = "res";
 static const char __pyx_k_sys[] = "sys";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_dict[] = "__dict__";
@@ -3232,12 +3241,16 @@ static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_update[] = "update";
 static const char __pyx_k_c_nodes[] = "c_nodes";
 static const char __pyx_k_disable[] = "disable";
+static const char __pyx_k_eq_cols[] = "eq_cols";
+static const char __pyx_k_eq_rows[] = "eq_rows";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_pointer[] = "pointer";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_Sequence[] = "Sequence";
+static const char __pyx_k_TriNodes[] = "TriNodes";
 static const char __pyx_k_c_blocks[] = "c_blocks";
+static const char __pyx_k_eq_coefs[] = "eq_coefs";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
@@ -3253,8 +3266,11 @@ static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_blocks_num[] = "blocks_num";
+static const char __pyx_k_mesh_nodes[] = "mesh_nodes";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
+static const char __pyx_k_FacesTriNum[] = "FacesTriNum";
+static const char __pyx_k_Faces_nodes[] = "Faces_nodes";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
@@ -3268,6 +3284,7 @@ static const char __pyx_k_is_coroutine[] = "_is_coroutine";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "<stringsource>";
 static const char __pyx_k_version_info[] = "version_info";
+static const char __pyx_k_c_Faces_nodes[] = "c_Faces_nodes";
 static const char __pyx_k_centroid_cols[] = "centroid_cols";
 static const char __pyx_k_class_getitem[] = "__class_getitem__";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
@@ -3360,7 +3377,7 @@ static void __pyx_memoryviewslice___pyx_pf_15View_dot_MemoryView_16_memoryviewsl
 static PyObject *__pyx_pf___pyx_memoryviewslice___reduce_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf___pyx_memoryviewslice_2__setstate_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_15View_dot_MemoryView___pyx_unpickle_Enum(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_active_faces, PyArrayObject *__pyx_v_blocks, PyArrayObject *__pyx_v_nodes, PyArrayObject *__pyx_v_faces_FEpts, PyArrayObject *__pyx_v_blocks_centroid, PyArrayObject *__pyx_v_local_ref); /* proto */
+static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_active_faces, PyArrayObject *__pyx_v_blocks, PyArrayObject *__pyx_v_nodes, PyArrayObject *__pyx_v_faces_FEpts, PyArrayObject *__pyx_v_Faces_nodes, PyArrayObject *__pyx_v_blocks_centroid, PyArrayObject *__pyx_v_local_ref); /* proto */
 static PyObject *__pyx_tp_new_array(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -3454,6 +3471,8 @@ typedef struct {
   PyObject *__pyx_kp_s_Dimension_d_is_not_direct;
   PyObject *__pyx_n_s_Ellipsis;
   PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
+  PyObject *__pyx_n_s_FacesTriNum;
+  PyObject *__pyx_n_s_Faces_nodes;
   PyObject *__pyx_n_s_ImportError;
   PyObject *__pyx_kp_s_Incompatible_checksums_0x_x_vs_0;
   PyObject *__pyx_n_s_IndexError;
@@ -3469,6 +3488,7 @@ typedef struct {
   PyObject *__pyx_n_s_PickleError;
   PyObject *__pyx_n_s_Sequence;
   PyObject *__pyx_kp_s_Step_may_not_be_zero_axis_d;
+  PyObject *__pyx_n_s_TriNodes;
   PyObject *__pyx_n_s_TypeError;
   PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
   PyObject *__pyx_n_s_ValueError;
@@ -3492,6 +3512,7 @@ typedef struct {
   PyObject *__pyx_n_s_brows;
   PyObject *__pyx_n_s_c;
   PyObject *__pyx_n_u_c;
+  PyObject *__pyx_n_s_c_Faces_nodes;
   PyObject *__pyx_n_s_c_active_faces;
   PyObject *__pyx_n_s_c_blocks;
   PyObject *__pyx_n_s_c_blocks_centroid;
@@ -3513,6 +3534,9 @@ typedef struct {
   PyObject *__pyx_kp_u_enable;
   PyObject *__pyx_n_s_encode;
   PyObject *__pyx_n_s_enumerate;
+  PyObject *__pyx_n_s_eq_coefs;
+  PyObject *__pyx_n_s_eq_cols;
+  PyObject *__pyx_n_s_eq_rows;
   PyObject *__pyx_n_s_error;
   PyObject *__pyx_n_s_faces_FEpts;
   PyObject *__pyx_n_s_faces_num;
@@ -3533,10 +3557,13 @@ typedef struct {
   PyObject *__pyx_kp_u_isenabled;
   PyObject *__pyx_n_s_itemsize;
   PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
+  PyObject *__pyx_n_s_j;
+  PyObject *__pyx_n_s_k;
   PyObject *__pyx_n_s_local_ref;
   PyObject *__pyx_n_s_main;
   PyObject *__pyx_n_s_memview;
   PyObject *__pyx_n_s_mesh;
+  PyObject *__pyx_n_s_mesh_nodes;
   PyObject *__pyx_n_s_mode;
   PyObject *__pyx_n_s_name;
   PyObject *__pyx_n_s_name_2;
@@ -3567,7 +3594,6 @@ typedef struct {
   PyObject *__pyx_n_s_reduce_cython;
   PyObject *__pyx_n_s_reduce_ex;
   PyObject *__pyx_n_s_register;
-  PyObject *__pyx_n_s_res;
   PyObject *__pyx_n_s_setstate;
   PyObject *__pyx_n_s_setstate_cython;
   PyObject *__pyx_n_s_shape;
@@ -3693,6 +3719,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_s_Dimension_d_is_not_direct);
   Py_CLEAR(clear_module_state->__pyx_n_s_Ellipsis);
   Py_CLEAR(clear_module_state->__pyx_kp_s_Empty_shape_tuple_for_cython_arr);
+  Py_CLEAR(clear_module_state->__pyx_n_s_FacesTriNum);
+  Py_CLEAR(clear_module_state->__pyx_n_s_Faces_nodes);
   Py_CLEAR(clear_module_state->__pyx_n_s_ImportError);
   Py_CLEAR(clear_module_state->__pyx_kp_s_Incompatible_checksums_0x_x_vs_0);
   Py_CLEAR(clear_module_state->__pyx_n_s_IndexError);
@@ -3708,6 +3736,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_PickleError);
   Py_CLEAR(clear_module_state->__pyx_n_s_Sequence);
   Py_CLEAR(clear_module_state->__pyx_kp_s_Step_may_not_be_zero_axis_d);
+  Py_CLEAR(clear_module_state->__pyx_n_s_TriNodes);
   Py_CLEAR(clear_module_state->__pyx_n_s_TypeError);
   Py_CLEAR(clear_module_state->__pyx_kp_s_Unable_to_convert_item_to_object);
   Py_CLEAR(clear_module_state->__pyx_n_s_ValueError);
@@ -3731,6 +3760,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_brows);
   Py_CLEAR(clear_module_state->__pyx_n_s_c);
   Py_CLEAR(clear_module_state->__pyx_n_u_c);
+  Py_CLEAR(clear_module_state->__pyx_n_s_c_Faces_nodes);
   Py_CLEAR(clear_module_state->__pyx_n_s_c_active_faces);
   Py_CLEAR(clear_module_state->__pyx_n_s_c_blocks);
   Py_CLEAR(clear_module_state->__pyx_n_s_c_blocks_centroid);
@@ -3752,6 +3782,9 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u_enable);
   Py_CLEAR(clear_module_state->__pyx_n_s_encode);
   Py_CLEAR(clear_module_state->__pyx_n_s_enumerate);
+  Py_CLEAR(clear_module_state->__pyx_n_s_eq_coefs);
+  Py_CLEAR(clear_module_state->__pyx_n_s_eq_cols);
+  Py_CLEAR(clear_module_state->__pyx_n_s_eq_rows);
   Py_CLEAR(clear_module_state->__pyx_n_s_error);
   Py_CLEAR(clear_module_state->__pyx_n_s_faces_FEpts);
   Py_CLEAR(clear_module_state->__pyx_n_s_faces_num);
@@ -3772,10 +3805,13 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u_isenabled);
   Py_CLEAR(clear_module_state->__pyx_n_s_itemsize);
   Py_CLEAR(clear_module_state->__pyx_kp_s_itemsize_0_for_cython_array);
+  Py_CLEAR(clear_module_state->__pyx_n_s_j);
+  Py_CLEAR(clear_module_state->__pyx_n_s_k);
   Py_CLEAR(clear_module_state->__pyx_n_s_local_ref);
   Py_CLEAR(clear_module_state->__pyx_n_s_main);
   Py_CLEAR(clear_module_state->__pyx_n_s_memview);
   Py_CLEAR(clear_module_state->__pyx_n_s_mesh);
+  Py_CLEAR(clear_module_state->__pyx_n_s_mesh_nodes);
   Py_CLEAR(clear_module_state->__pyx_n_s_mode);
   Py_CLEAR(clear_module_state->__pyx_n_s_name);
   Py_CLEAR(clear_module_state->__pyx_n_s_name_2);
@@ -3806,7 +3842,6 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce_cython);
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce_ex);
   Py_CLEAR(clear_module_state->__pyx_n_s_register);
-  Py_CLEAR(clear_module_state->__pyx_n_s_res);
   Py_CLEAR(clear_module_state->__pyx_n_s_setstate);
   Py_CLEAR(clear_module_state->__pyx_n_s_setstate_cython);
   Py_CLEAR(clear_module_state->__pyx_n_s_shape);
@@ -3910,6 +3945,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_s_Dimension_d_is_not_direct);
   Py_VISIT(traverse_module_state->__pyx_n_s_Ellipsis);
   Py_VISIT(traverse_module_state->__pyx_kp_s_Empty_shape_tuple_for_cython_arr);
+  Py_VISIT(traverse_module_state->__pyx_n_s_FacesTriNum);
+  Py_VISIT(traverse_module_state->__pyx_n_s_Faces_nodes);
   Py_VISIT(traverse_module_state->__pyx_n_s_ImportError);
   Py_VISIT(traverse_module_state->__pyx_kp_s_Incompatible_checksums_0x_x_vs_0);
   Py_VISIT(traverse_module_state->__pyx_n_s_IndexError);
@@ -3925,6 +3962,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_PickleError);
   Py_VISIT(traverse_module_state->__pyx_n_s_Sequence);
   Py_VISIT(traverse_module_state->__pyx_kp_s_Step_may_not_be_zero_axis_d);
+  Py_VISIT(traverse_module_state->__pyx_n_s_TriNodes);
   Py_VISIT(traverse_module_state->__pyx_n_s_TypeError);
   Py_VISIT(traverse_module_state->__pyx_kp_s_Unable_to_convert_item_to_object);
   Py_VISIT(traverse_module_state->__pyx_n_s_ValueError);
@@ -3948,6 +3986,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_brows);
   Py_VISIT(traverse_module_state->__pyx_n_s_c);
   Py_VISIT(traverse_module_state->__pyx_n_u_c);
+  Py_VISIT(traverse_module_state->__pyx_n_s_c_Faces_nodes);
   Py_VISIT(traverse_module_state->__pyx_n_s_c_active_faces);
   Py_VISIT(traverse_module_state->__pyx_n_s_c_blocks);
   Py_VISIT(traverse_module_state->__pyx_n_s_c_blocks_centroid);
@@ -3969,6 +4008,9 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u_enable);
   Py_VISIT(traverse_module_state->__pyx_n_s_encode);
   Py_VISIT(traverse_module_state->__pyx_n_s_enumerate);
+  Py_VISIT(traverse_module_state->__pyx_n_s_eq_coefs);
+  Py_VISIT(traverse_module_state->__pyx_n_s_eq_cols);
+  Py_VISIT(traverse_module_state->__pyx_n_s_eq_rows);
   Py_VISIT(traverse_module_state->__pyx_n_s_error);
   Py_VISIT(traverse_module_state->__pyx_n_s_faces_FEpts);
   Py_VISIT(traverse_module_state->__pyx_n_s_faces_num);
@@ -3989,10 +4031,13 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u_isenabled);
   Py_VISIT(traverse_module_state->__pyx_n_s_itemsize);
   Py_VISIT(traverse_module_state->__pyx_kp_s_itemsize_0_for_cython_array);
+  Py_VISIT(traverse_module_state->__pyx_n_s_j);
+  Py_VISIT(traverse_module_state->__pyx_n_s_k);
   Py_VISIT(traverse_module_state->__pyx_n_s_local_ref);
   Py_VISIT(traverse_module_state->__pyx_n_s_main);
   Py_VISIT(traverse_module_state->__pyx_n_s_memview);
   Py_VISIT(traverse_module_state->__pyx_n_s_mesh);
+  Py_VISIT(traverse_module_state->__pyx_n_s_mesh_nodes);
   Py_VISIT(traverse_module_state->__pyx_n_s_mode);
   Py_VISIT(traverse_module_state->__pyx_n_s_name);
   Py_VISIT(traverse_module_state->__pyx_n_s_name_2);
@@ -4023,7 +4068,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce_cython);
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce_ex);
   Py_VISIT(traverse_module_state->__pyx_n_s_register);
-  Py_VISIT(traverse_module_state->__pyx_n_s_res);
   Py_VISIT(traverse_module_state->__pyx_n_s_setstate);
   Py_VISIT(traverse_module_state->__pyx_n_s_setstate_cython);
   Py_VISIT(traverse_module_state->__pyx_n_s_shape);
@@ -4159,6 +4203,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_s_Dimension_d_is_not_direct __pyx_mstate_global->__pyx_kp_s_Dimension_d_is_not_direct
 #define __pyx_n_s_Ellipsis __pyx_mstate_global->__pyx_n_s_Ellipsis
 #define __pyx_kp_s_Empty_shape_tuple_for_cython_arr __pyx_mstate_global->__pyx_kp_s_Empty_shape_tuple_for_cython_arr
+#define __pyx_n_s_FacesTriNum __pyx_mstate_global->__pyx_n_s_FacesTriNum
+#define __pyx_n_s_Faces_nodes __pyx_mstate_global->__pyx_n_s_Faces_nodes
 #define __pyx_n_s_ImportError __pyx_mstate_global->__pyx_n_s_ImportError
 #define __pyx_kp_s_Incompatible_checksums_0x_x_vs_0 __pyx_mstate_global->__pyx_kp_s_Incompatible_checksums_0x_x_vs_0
 #define __pyx_n_s_IndexError __pyx_mstate_global->__pyx_n_s_IndexError
@@ -4174,6 +4220,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_PickleError __pyx_mstate_global->__pyx_n_s_PickleError
 #define __pyx_n_s_Sequence __pyx_mstate_global->__pyx_n_s_Sequence
 #define __pyx_kp_s_Step_may_not_be_zero_axis_d __pyx_mstate_global->__pyx_kp_s_Step_may_not_be_zero_axis_d
+#define __pyx_n_s_TriNodes __pyx_mstate_global->__pyx_n_s_TriNodes
 #define __pyx_n_s_TypeError __pyx_mstate_global->__pyx_n_s_TypeError
 #define __pyx_kp_s_Unable_to_convert_item_to_object __pyx_mstate_global->__pyx_kp_s_Unable_to_convert_item_to_object
 #define __pyx_n_s_ValueError __pyx_mstate_global->__pyx_n_s_ValueError
@@ -4197,6 +4244,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_brows __pyx_mstate_global->__pyx_n_s_brows
 #define __pyx_n_s_c __pyx_mstate_global->__pyx_n_s_c
 #define __pyx_n_u_c __pyx_mstate_global->__pyx_n_u_c
+#define __pyx_n_s_c_Faces_nodes __pyx_mstate_global->__pyx_n_s_c_Faces_nodes
 #define __pyx_n_s_c_active_faces __pyx_mstate_global->__pyx_n_s_c_active_faces
 #define __pyx_n_s_c_blocks __pyx_mstate_global->__pyx_n_s_c_blocks
 #define __pyx_n_s_c_blocks_centroid __pyx_mstate_global->__pyx_n_s_c_blocks_centroid
@@ -4218,6 +4266,9 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u_enable __pyx_mstate_global->__pyx_kp_u_enable
 #define __pyx_n_s_encode __pyx_mstate_global->__pyx_n_s_encode
 #define __pyx_n_s_enumerate __pyx_mstate_global->__pyx_n_s_enumerate
+#define __pyx_n_s_eq_coefs __pyx_mstate_global->__pyx_n_s_eq_coefs
+#define __pyx_n_s_eq_cols __pyx_mstate_global->__pyx_n_s_eq_cols
+#define __pyx_n_s_eq_rows __pyx_mstate_global->__pyx_n_s_eq_rows
 #define __pyx_n_s_error __pyx_mstate_global->__pyx_n_s_error
 #define __pyx_n_s_faces_FEpts __pyx_mstate_global->__pyx_n_s_faces_FEpts
 #define __pyx_n_s_faces_num __pyx_mstate_global->__pyx_n_s_faces_num
@@ -4238,10 +4289,13 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u_isenabled __pyx_mstate_global->__pyx_kp_u_isenabled
 #define __pyx_n_s_itemsize __pyx_mstate_global->__pyx_n_s_itemsize
 #define __pyx_kp_s_itemsize_0_for_cython_array __pyx_mstate_global->__pyx_kp_s_itemsize_0_for_cython_array
+#define __pyx_n_s_j __pyx_mstate_global->__pyx_n_s_j
+#define __pyx_n_s_k __pyx_mstate_global->__pyx_n_s_k
 #define __pyx_n_s_local_ref __pyx_mstate_global->__pyx_n_s_local_ref
 #define __pyx_n_s_main __pyx_mstate_global->__pyx_n_s_main
 #define __pyx_n_s_memview __pyx_mstate_global->__pyx_n_s_memview
 #define __pyx_n_s_mesh __pyx_mstate_global->__pyx_n_s_mesh
+#define __pyx_n_s_mesh_nodes __pyx_mstate_global->__pyx_n_s_mesh_nodes
 #define __pyx_n_s_mode __pyx_mstate_global->__pyx_n_s_mode
 #define __pyx_n_s_name __pyx_mstate_global->__pyx_n_s_name
 #define __pyx_n_s_name_2 __pyx_mstate_global->__pyx_n_s_name_2
@@ -4272,7 +4326,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_reduce_cython __pyx_mstate_global->__pyx_n_s_reduce_cython
 #define __pyx_n_s_reduce_ex __pyx_mstate_global->__pyx_n_s_reduce_ex
 #define __pyx_n_s_register __pyx_mstate_global->__pyx_n_s_register
-#define __pyx_n_s_res __pyx_mstate_global->__pyx_n_s_res
 #define __pyx_n_s_setstate __pyx_mstate_global->__pyx_n_s_setstate
 #define __pyx_n_s_setstate_cython __pyx_mstate_global->__pyx_n_s_setstate_cython
 #define __pyx_n_s_shape __pyx_mstate_global->__pyx_n_s_shape
@@ -19211,9 +19264,9 @@ static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObjec
 /* "mesh.pyx":14
  * 
  * 
- * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
+ * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
  * 
- * 
+ *     ### C++ variable construction
  */
 
 /* Python wrapper */
@@ -19236,13 +19289,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   PyArrayObject *__pyx_v_blocks = 0;
   PyArrayObject *__pyx_v_nodes = 0;
   PyArrayObject *__pyx_v_faces_FEpts = 0;
+  PyArrayObject *__pyx_v_Faces_nodes = 0;
   PyArrayObject *__pyx_v_blocks_centroid = 0;
   PyArrayObject *__pyx_v_local_ref = 0;
   #if !CYTHON_METH_FASTCALL
   CYTHON_UNUSED Py_ssize_t __pyx_nargs;
   #endif
   CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
-  PyObject* values[6] = {0,0,0,0,0,0};
+  PyObject* values[7] = {0,0,0,0,0,0,0};
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -19258,10 +19312,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   #endif
   __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
   {
-    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_active_faces,&__pyx_n_s_blocks,&__pyx_n_s_nodes,&__pyx_n_s_faces_FEpts,&__pyx_n_s_blocks_centroid,&__pyx_n_s_local_ref,0};
+    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_active_faces,&__pyx_n_s_blocks,&__pyx_n_s_nodes,&__pyx_n_s_faces_FEpts,&__pyx_n_s_Faces_nodes,&__pyx_n_s_blocks_centroid,&__pyx_n_s_local_ref,0};
     if (__pyx_kwds) {
       Py_ssize_t kw_args;
       switch (__pyx_nargs) {
+        case  7: values[6] = __Pyx_Arg_FASTCALL(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
         case  6: values[5] = __Pyx_Arg_FASTCALL(__pyx_args, 5);
         CYTHON_FALLTHROUGH;
         case  5: values[4] = __Pyx_Arg_FASTCALL(__pyx_args, 4);
@@ -19294,7 +19350,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 6, 6, 1); __PYX_ERR(0, 14, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, 1); __PYX_ERR(0, 14, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -19304,7 +19360,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 6, 6, 2); __PYX_ERR(0, 14, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, 2); __PYX_ERR(0, 14, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -19314,34 +19370,44 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 6, 6, 3); __PYX_ERR(0, 14, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, 3); __PYX_ERR(0, 14, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (likely((values[4] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_blocks_centroid)) != 0)) {
+        if (likely((values[4] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_Faces_nodes)) != 0)) {
           (void)__Pyx_Arg_NewRef_FASTCALL(values[4]);
           kw_args--;
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 6, 6, 4); __PYX_ERR(0, 14, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, 4); __PYX_ERR(0, 14, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
-        if (likely((values[5] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_local_ref)) != 0)) {
+        if (likely((values[5] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_blocks_centroid)) != 0)) {
           (void)__Pyx_Arg_NewRef_FASTCALL(values[5]);
           kw_args--;
         }
         else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 6, 6, 5); __PYX_ERR(0, 14, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, 5); __PYX_ERR(0, 14, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
+        if (likely((values[6] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_local_ref)) != 0)) {
+          (void)__Pyx_Arg_NewRef_FASTCALL(values[6]);
+          kw_args--;
+        }
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 14, __pyx_L3_error)
+        else {
+          __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, 6); __PYX_ERR(0, 14, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "print_hello_pyth") < 0)) __PYX_ERR(0, 14, __pyx_L3_error)
       }
-    } else if (unlikely(__pyx_nargs != 6)) {
+    } else if (unlikely(__pyx_nargs != 7)) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = __Pyx_Arg_FASTCALL(__pyx_args, 0);
@@ -19350,17 +19416,19 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       values[3] = __Pyx_Arg_FASTCALL(__pyx_args, 3);
       values[4] = __Pyx_Arg_FASTCALL(__pyx_args, 4);
       values[5] = __Pyx_Arg_FASTCALL(__pyx_args, 5);
+      values[6] = __Pyx_Arg_FASTCALL(__pyx_args, 6);
     }
     __pyx_v_active_faces = ((PyArrayObject *)values[0]);
     __pyx_v_blocks = ((PyArrayObject *)values[1]);
     __pyx_v_nodes = ((PyArrayObject *)values[2]);
     __pyx_v_faces_FEpts = ((PyArrayObject *)values[3]);
-    __pyx_v_blocks_centroid = ((PyArrayObject *)values[4]);
-    __pyx_v_local_ref = ((PyArrayObject *)values[5]);
+    __pyx_v_Faces_nodes = ((PyArrayObject *)values[4]);
+    __pyx_v_blocks_centroid = ((PyArrayObject *)values[5]);
+    __pyx_v_local_ref = ((PyArrayObject *)values[6]);
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 6, 6, __pyx_nargs); __PYX_ERR(0, 14, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("print_hello_pyth", 1, 7, 7, __pyx_nargs); __PYX_ERR(0, 14, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -19378,9 +19446,10 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_blocks), __pyx_ptype_5numpy_ndarray, 1, "blocks", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_nodes), __pyx_ptype_5numpy_ndarray, 1, "nodes", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_faces_FEpts), __pyx_ptype_5numpy_ndarray, 1, "faces_FEpts", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_Faces_nodes), __pyx_ptype_5numpy_ndarray, 1, "Faces_nodes", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_blocks_centroid), __pyx_ptype_5numpy_ndarray, 1, "blocks_centroid", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_local_ref), __pyx_ptype_5numpy_ndarray, 1, "local_ref", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
-  __pyx_r = __pyx_pf_4mesh_print_hello_pyth(__pyx_self, __pyx_v_active_faces, __pyx_v_blocks, __pyx_v_nodes, __pyx_v_faces_FEpts, __pyx_v_blocks_centroid, __pyx_v_local_ref);
+  __pyx_r = __pyx_pf_4mesh_print_hello_pyth(__pyx_self, __pyx_v_active_faces, __pyx_v_blocks, __pyx_v_nodes, __pyx_v_faces_FEpts, __pyx_v_Faces_nodes, __pyx_v_blocks_centroid, __pyx_v_local_ref);
 
   /* function exit code */
   goto __pyx_L0;
@@ -19397,7 +19466,8 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_active_faces, PyArrayObject *__pyx_v_blocks, PyArrayObject *__pyx_v_nodes, PyArrayObject *__pyx_v_faces_FEpts, PyArrayObject *__pyx_v_blocks_centroid, PyArrayObject *__pyx_v_local_ref) {
+static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_active_faces, PyArrayObject *__pyx_v_blocks, PyArrayObject *__pyx_v_nodes, PyArrayObject *__pyx_v_faces_FEpts, PyArrayObject *__pyx_v_Faces_nodes, PyArrayObject *__pyx_v_blocks_centroid, PyArrayObject *__pyx_v_local_ref) {
+  int *__pyx_v_c_Faces_nodes;
   int *__pyx_v_c_active_faces;
   int __pyx_v_active_faces_num;
   double *__pyx_v_c_nodes;
@@ -19412,9 +19482,24 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   int __pyx_v_faces_num;
   PyObject *__pyx_v_brows = 0;
   PyObject *__pyx_v_bcols = 0;
-  Pointers __pyx_v_pointer;
-  PyObject *__pyx_v_res = NULL;
+  Output __pyx_v_pointer;
+  PyObject *__pyx_v_eq_coefs = NULL;
+  CYTHON_UNUSED PyObject *__pyx_v_eq_cols = NULL;
+  CYTHON_UNUSED PyObject *__pyx_v_eq_rows = NULL;
+  CYTHON_UNUSED PyObject *__pyx_v_mesh_nodes = NULL;
+  PyObject *__pyx_v_FacesTriNum = NULL;
+  PyObject *__pyx_v_TriNodes = NULL;
   int __pyx_7genexpr__pyx_v_i;
+  int __pyx_8genexpr1__pyx_v_i;
+  int __pyx_8genexpr2__pyx_v_i;
+  long __pyx_8genexpr3__pyx_v_j;
+  long __pyx_8genexpr4__pyx_v_i;
+  long __pyx_8genexpr5__pyx_v_i;
+  int __pyx_8genexpr6__pyx_v_k;
+  PyObject *__pyx_8genexpr7__pyx_v_j = NULL;
+  long __pyx_8genexpr8__pyx_v_i;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_Faces_nodes;
+  __Pyx_Buffer __pyx_pybuffer_Faces_nodes;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_active_faces;
   __Pyx_Buffer __pyx_pybuffer_active_faces;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_blocks;
@@ -19436,6 +19521,17 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   int __pyx_t_5;
   int __pyx_t_6;
   PyObject *__pyx_t_7 = NULL;
+  long __pyx_t_8;
+  long __pyx_t_9;
+  PyObject *__pyx_t_10 = NULL;
+  long __pyx_t_11;
+  PyObject *__pyx_t_12 = NULL;
+  PyObject *__pyx_t_13 = NULL;
+  Py_ssize_t __pyx_t_14;
+  PyObject *(*__pyx_t_15)(PyObject *);
+  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_17 = NULL;
+  Py_ssize_t __pyx_t_18;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -19456,6 +19552,10 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_pybuffer_faces_FEpts.refcount = 0;
   __pyx_pybuffernd_faces_FEpts.data = NULL;
   __pyx_pybuffernd_faces_FEpts.rcbuffer = &__pyx_pybuffer_faces_FEpts;
+  __pyx_pybuffer_Faces_nodes.pybuffer.buf = NULL;
+  __pyx_pybuffer_Faces_nodes.refcount = 0;
+  __pyx_pybuffernd_Faces_nodes.data = NULL;
+  __pyx_pybuffernd_Faces_nodes.rcbuffer = &__pyx_pybuffer_Faces_nodes;
   __pyx_pybuffer_blocks_centroid.pybuffer.buf = NULL;
   __pyx_pybuffer_blocks_centroid.refcount = 0;
   __pyx_pybuffernd_blocks_centroid.data = NULL;
@@ -19486,6 +19586,11 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_pybuffernd_faces_FEpts.diminfo[0].strides = __pyx_pybuffernd_faces_FEpts.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_faces_FEpts.diminfo[0].shape = __pyx_pybuffernd_faces_FEpts.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_Faces_nodes.rcbuffer->pybuffer, (PyObject*)__pyx_v_Faces_nodes, &__Pyx_TypeInfo_int, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 14, __pyx_L1_error)
+  }
+  __pyx_pybuffernd_Faces_nodes.diminfo[0].strides = __pyx_pybuffernd_Faces_nodes.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_Faces_nodes.diminfo[0].shape = __pyx_pybuffernd_Faces_nodes.rcbuffer->pybuffer.shape[0];
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer, (PyObject*)__pyx_v_blocks_centroid, &__Pyx_TypeInfo_double, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 14, __pyx_L1_error)
   }
   __pyx_pybuffernd_blocks_centroid.diminfo[0].strides = __pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_blocks_centroid.diminfo[0].shape = __pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_blocks_centroid.diminfo[1].strides = __pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_blocks_centroid.diminfo[1].shape = __pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer.shape[1];
@@ -19495,212 +19600,463 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   }
   __pyx_pybuffernd_local_ref.diminfo[0].strides = __pyx_pybuffernd_local_ref.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_local_ref.diminfo[0].shape = __pyx_pybuffernd_local_ref.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_local_ref.diminfo[1].strides = __pyx_pybuffernd_local_ref.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_local_ref.diminfo[1].shape = __pyx_pybuffernd_local_ref.rcbuffer->pybuffer.shape[1];
 
-  /* "mesh.pyx":18
+  /* "mesh.pyx":17
  * 
+ *     ### C++ variable construction
+ *     cdef int* c_Faces_nodes = <int*>Faces_nodes.data             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int* c_active_faces = <int*>active_faces.data
+ */
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_Faces_nodes)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_v_c_Faces_nodes = ((int *)__pyx_t_1);
+
+  /* "mesh.pyx":19
+ *     cdef int* c_Faces_nodes = <int*>Faces_nodes.data
  * 
  *     cdef int* c_active_faces = <int*>active_faces.data             # <<<<<<<<<<<<<<
  *     cdef int active_faces_num = active_faces.shape[0]
  * 
  */
-  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_active_faces)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 18, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_active_faces)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 19, __pyx_L1_error)
   __pyx_v_c_active_faces = ((int *)__pyx_t_1);
 
-  /* "mesh.pyx":19
+  /* "mesh.pyx":20
  * 
  *     cdef int* c_active_faces = <int*>active_faces.data
  *     cdef int active_faces_num = active_faces.shape[0]             # <<<<<<<<<<<<<<
  * 
  *     cdef double* c_nodes = <double*>nodes.data
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_active_faces)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_active_faces)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 20, __pyx_L1_error)
   __pyx_v_active_faces_num = (__pyx_t_2[0]);
 
-  /* "mesh.pyx":21
+  /* "mesh.pyx":22
  *     cdef int active_faces_num = active_faces.shape[0]
  * 
  *     cdef double* c_nodes = <double*>nodes.data             # <<<<<<<<<<<<<<
  *     cdef double* c_blocks = <double*>blocks.data
  * 
  */
-  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_nodes)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_nodes)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 22, __pyx_L1_error)
   __pyx_v_c_nodes = ((double *)__pyx_t_1);
 
-  /* "mesh.pyx":22
+  /* "mesh.pyx":23
  * 
  *     cdef double* c_nodes = <double*>nodes.data
  *     cdef double* c_blocks = <double*>blocks.data             # <<<<<<<<<<<<<<
  * 
  *     cdef double* c_blocks_centroid = <double*>blocks_centroid.data
  */
-  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_blocks)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_blocks)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 23, __pyx_L1_error)
   __pyx_v_c_blocks = ((double *)__pyx_t_1);
 
-  /* "mesh.pyx":24
+  /* "mesh.pyx":25
  *     cdef double* c_blocks = <double*>blocks.data
  * 
  *     cdef double* c_blocks_centroid = <double*>blocks_centroid.data             # <<<<<<<<<<<<<<
  *     cdef double* c_local_ref = <double*>local_ref.data
  * 
  */
-  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_blocks_centroid)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_blocks_centroid)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 25, __pyx_L1_error)
   __pyx_v_c_blocks_centroid = ((double *)__pyx_t_1);
 
-  /* "mesh.pyx":25
+  /* "mesh.pyx":26
  * 
  *     cdef double* c_blocks_centroid = <double*>blocks_centroid.data
  *     cdef double* c_local_ref = <double*>local_ref.data             # <<<<<<<<<<<<<<
  * 
  *     cdef int nrows = nodes.shape[0]
  */
-  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_local_ref)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_local_ref)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 26, __pyx_L1_error)
   __pyx_v_c_local_ref = ((double *)__pyx_t_1);
 
-  /* "mesh.pyx":27
+  /* "mesh.pyx":28
  *     cdef double* c_local_ref = <double*>local_ref.data
  * 
  *     cdef int nrows = nodes.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int ncols = nodes.shape[1]
  * 
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_nodes)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 27, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_nodes)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 28, __pyx_L1_error)
   __pyx_v_nrows = (__pyx_t_2[0]);
 
-  /* "mesh.pyx":28
+  /* "mesh.pyx":29
  * 
  *     cdef int nrows = nodes.shape[0]
  *     cdef int ncols = nodes.shape[1]             # <<<<<<<<<<<<<<
  * 
  *     cdef int blocks_num = blocks_centroid.shape[0]
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_nodes)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_nodes)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 29, __pyx_L1_error)
   __pyx_v_ncols = (__pyx_t_2[1]);
 
-  /* "mesh.pyx":30
+  /* "mesh.pyx":31
  *     cdef int ncols = nodes.shape[1]
  * 
  *     cdef int blocks_num = blocks_centroid.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int centroid_cols = blocks_centroid.shape[1]
  * 
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks_centroid)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks_centroid)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 31, __pyx_L1_error)
   __pyx_v_blocks_num = (__pyx_t_2[0]);
 
-  /* "mesh.pyx":31
+  /* "mesh.pyx":32
  * 
  *     cdef int blocks_num = blocks_centroid.shape[0]
  *     cdef int centroid_cols = blocks_centroid.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     #cdef int ref_rows = ref.shape[0]
+ *     cdef int* c_facesFEpts = <int*>faces_FEpts.data
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks_centroid)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks_centroid)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 32, __pyx_L1_error)
   __pyx_v_centroid_cols = (__pyx_t_2[1]);
 
-  /* "mesh.pyx":36
- *     #cdef int ref_cols = ref.shape[1]
+  /* "mesh.pyx":34
+ *     cdef int centroid_cols = blocks_centroid.shape[1]
  * 
  *     cdef int* c_facesFEpts = <int*>faces_FEpts.data             # <<<<<<<<<<<<<<
  * 
  *     cdef int faces_num = faces_FEpts.shape[0] -1
  */
-  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_faces_FEpts)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_5numpy_7ndarray_4data_data(((PyArrayObject *)__pyx_v_faces_FEpts)); if (unlikely(__pyx_t_1 == ((char *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L1_error)
   __pyx_v_c_facesFEpts = ((int *)__pyx_t_1);
 
-  /* "mesh.pyx":38
+  /* "mesh.pyx":36
  *     cdef int* c_facesFEpts = <int*>faces_FEpts.data
  * 
  *     cdef int faces_num = faces_FEpts.shape[0] -1             # <<<<<<<<<<<<<<
  * 
  *     cdef brows = blocks.shape[0]
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_faces_FEpts)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_faces_FEpts)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L1_error)
   __pyx_v_faces_num = ((__pyx_t_2[0]) - 1);
 
-  /* "mesh.pyx":40
+  /* "mesh.pyx":38
  *     cdef int faces_num = faces_FEpts.shape[0] -1
  * 
  *     cdef brows = blocks.shape[0]             # <<<<<<<<<<<<<<
  *     cdef bcols = blocks.shape[1]
  * 
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyInt_From_Py_intptr_t((__pyx_t_2[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_Py_intptr_t((__pyx_t_2[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_brows = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "mesh.pyx":41
+  /* "mesh.pyx":39
  * 
  *     cdef brows = blocks.shape[0]
  *     cdef bcols = blocks.shape[1]             # <<<<<<<<<<<<<<
  * 
- *     cdef  Pointers pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, faces_num, c_blocks_centroid, c_local_ref   )
+ *     ### Call C++ function
  */
-  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 41, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyInt_From_Py_intptr_t((__pyx_t_2[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_7ndarray_5shape_shape(((PyArrayObject *)__pyx_v_blocks)); if (unlikely(__pyx_t_2 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_Py_intptr_t((__pyx_t_2[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_bcols = __pyx_t_3;
   __pyx_t_3 = 0;
 
   /* "mesh.pyx":43
- *     cdef bcols = blocks.shape[1]
+ *     ### Call C++ function
  * 
- *     cdef  Pointers pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, faces_num, c_blocks_centroid, c_local_ref   )             # <<<<<<<<<<<<<<
+ *     cdef  Output pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, c_Faces_nodes, faces_num, c_blocks_centroid, c_local_ref   )             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_brows); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L1_error)
   __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_bcols); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L1_error)
-  __pyx_v_pointer = print_hello_c(__pyx_v_c_blocks, __pyx_t_4, __pyx_t_5, __pyx_v_blocks_num, __pyx_v_c_nodes, __pyx_v_c_active_faces, __pyx_v_active_faces_num, __pyx_v_nrows, __pyx_v_ncols, __pyx_v_c_facesFEpts, __pyx_v_faces_num, __pyx_v_c_blocks_centroid, __pyx_v_c_local_ref);
+  __pyx_v_pointer = print_hello_c(__pyx_v_c_blocks, __pyx_t_4, __pyx_t_5, __pyx_v_blocks_num, __pyx_v_c_nodes, __pyx_v_c_active_faces, __pyx_v_active_faces_num, __pyx_v_nrows, __pyx_v_ncols, __pyx_v_c_facesFEpts, __pyx_v_c_Faces_nodes, __pyx_v_faces_num, __pyx_v_c_blocks_centroid, __pyx_v_c_local_ref);
 
-  /* "mesh.pyx":59
- *     #res = np.asarray(pointer.ptr2, dtype=np.float64)[:20]
+  /* "mesh.pyx":51
+ *     ### Convert C++ to python
  * 
- *     res = [pointer.ptr2[i] for i in range(pointer.ptr1)]  # Assuming 4 elements in pointer.ptr1             # <<<<<<<<<<<<<<
- * 
- *     # af = <np.long[:rows,:cols]> pointer
+ *     eq_coefs = [pointer.eq_coefs[i] for i in range(pointer.sparse_dim) ]             # <<<<<<<<<<<<<<
+ *     eq_cols = [pointer.eq_cols[i] for i in range(pointer.sparse_dim) ]
+ *     eq_rows = [pointer.eq_rows[i] for i in range(pointer.sparse_dim) ]
  */
   { /* enter inner scope */
-    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = __pyx_v_pointer.ptr1;
+    __pyx_t_5 = __pyx_v_pointer.sparse_dim;
     __pyx_t_4 = __pyx_t_5;
     for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_4; __pyx_t_6+=1) {
       __pyx_7genexpr__pyx_v_i = __pyx_t_6;
-      __pyx_t_7 = PyFloat_FromDouble((__pyx_v_pointer.ptr2[__pyx_7genexpr__pyx_v_i])); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 59, __pyx_L1_error)
+      __pyx_t_7 = PyFloat_FromDouble((__pyx_v_pointer.eq_coefs[__pyx_7genexpr__pyx_v_i])); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 51, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 59, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 51, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
   } /* exit inner scope */
-  __pyx_v_res = ((PyObject*)__pyx_t_3);
+  __pyx_v_eq_coefs = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "mesh.pyx":64
+  /* "mesh.pyx":52
  * 
- *     # anarrray = anarrray.tolist()
- *     return res             # <<<<<<<<<<<<<<
+ *     eq_coefs = [pointer.eq_coefs[i] for i in range(pointer.sparse_dim) ]
+ *     eq_cols = [pointer.eq_cols[i] for i in range(pointer.sparse_dim) ]             # <<<<<<<<<<<<<<
+ *     eq_rows = [pointer.eq_rows[i] for i in range(pointer.sparse_dim) ]
+ *     mesh_nodes = [[ pointer.mesh_nodes[3*j + i] for i in range(3) ] for j in range(3) ]
+ */
+  { /* enter inner scope */
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 52, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = __pyx_v_pointer.sparse_dim;
+    __pyx_t_4 = __pyx_t_5;
+    for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_4; __pyx_t_6+=1) {
+      __pyx_8genexpr1__pyx_v_i = __pyx_t_6;
+      __pyx_t_7 = __Pyx_PyInt_From_int((__pyx_v_pointer.eq_cols[__pyx_8genexpr1__pyx_v_i])); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 52, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 52, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    }
+  } /* exit inner scope */
+  __pyx_v_eq_cols = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "mesh.pyx":53
+ *     eq_coefs = [pointer.eq_coefs[i] for i in range(pointer.sparse_dim) ]
+ *     eq_cols = [pointer.eq_cols[i] for i in range(pointer.sparse_dim) ]
+ *     eq_rows = [pointer.eq_rows[i] for i in range(pointer.sparse_dim) ]             # <<<<<<<<<<<<<<
+ *     mesh_nodes = [[ pointer.mesh_nodes[3*j + i] for i in range(3) ] for j in range(3) ]
+ * 
+ */
+  { /* enter inner scope */
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = __pyx_v_pointer.sparse_dim;
+    __pyx_t_4 = __pyx_t_5;
+    for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_4; __pyx_t_6+=1) {
+      __pyx_8genexpr2__pyx_v_i = __pyx_t_6;
+      __pyx_t_7 = __Pyx_PyInt_From_int((__pyx_v_pointer.eq_rows[__pyx_8genexpr2__pyx_v_i])); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 53, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    }
+  } /* exit inner scope */
+  __pyx_v_eq_rows = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "mesh.pyx":54
+ *     eq_cols = [pointer.eq_cols[i] for i in range(pointer.sparse_dim) ]
+ *     eq_rows = [pointer.eq_rows[i] for i in range(pointer.sparse_dim) ]
+ *     mesh_nodes = [[ pointer.mesh_nodes[3*j + i] for i in range(3) ] for j in range(3) ]             # <<<<<<<<<<<<<<
+ * 
+ *     #TriNodes = [pointer.TriNodes[i] for i in range(pointer.sparse_dim) ]
+ */
+  { /* enter inner scope */
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 54, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    for (__pyx_t_8 = 0; __pyx_t_8 < 3; __pyx_t_8+=1) {
+      __pyx_8genexpr3__pyx_v_j = __pyx_t_8;
+      { /* enter inner scope */
+        __pyx_t_7 = PyList_New(0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 54, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        for (__pyx_t_9 = 0; __pyx_t_9 < 3; __pyx_t_9+=1) {
+          __pyx_8genexpr4__pyx_v_i = __pyx_t_9;
+          __pyx_t_10 = PyFloat_FromDouble((__pyx_v_pointer.mesh_nodes[((3 * __pyx_8genexpr3__pyx_v_j) + __pyx_8genexpr4__pyx_v_i)])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 54, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_10);
+          if (unlikely(__Pyx_ListComp_Append(__pyx_t_7, (PyObject*)__pyx_t_10))) __PYX_ERR(0, 54, __pyx_L1_error)
+          __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        }
+      } /* exit inner scope */
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 54, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    }
+  } /* exit inner scope */
+  __pyx_v_mesh_nodes = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "mesh.pyx":58
+ *     #TriNodes = [pointer.TriNodes[i] for i in range(pointer.sparse_dim) ]
+ * 
+ *     FacesTriNum = [pointer.FacesTriNum[i] for i in range(faces_num + 1) ]             # <<<<<<<<<<<<<<
+ * 
+ *     TriNodes= [[[pointer.TriNodes[3*j + i ] for i in range(3) ]  for j in range( FacesTriNum[k],FacesTriNum[k+1] )   ] for k in range(faces_num) ]
+ */
+  { /* enter inner scope */
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_8 = (__pyx_v_faces_num + 1);
+    __pyx_t_9 = __pyx_t_8;
+    for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_9; __pyx_t_11+=1) {
+      __pyx_8genexpr5__pyx_v_i = __pyx_t_11;
+      __pyx_t_7 = __Pyx_PyInt_From_int((__pyx_v_pointer.FacesTriNum[__pyx_8genexpr5__pyx_v_i])); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 58, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 58, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    }
+  } /* exit inner scope */
+  __pyx_v_FacesTriNum = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "mesh.pyx":60
+ *     FacesTriNum = [pointer.FacesTriNum[i] for i in range(faces_num + 1) ]
+ * 
+ *     TriNodes= [[[pointer.TriNodes[3*j + i ] for i in range(3) ]  for j in range( FacesTriNum[k],FacesTriNum[k+1] )   ] for k in range(faces_num) ]             # <<<<<<<<<<<<<<
+ * 
+ *     return  eq_coefs, TriNodes
+ */
+  { /* enter inner scope */
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = __pyx_v_faces_num;
+    __pyx_t_4 = __pyx_t_5;
+    for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_4; __pyx_t_6+=1) {
+      __pyx_8genexpr6__pyx_v_k = __pyx_t_6;
+      { /* enter inner scope */
+        __pyx_t_7 = PyList_New(0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 60, __pyx_L19_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_10 = __Pyx_GetItemInt_List(__pyx_v_FacesTriNum, __pyx_8genexpr6__pyx_v_k, int, 1, __Pyx_PyInt_From_int, 1, 1, 1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 60, __pyx_L19_error)
+        __Pyx_GOTREF(__pyx_t_10);
+        __pyx_t_8 = (__pyx_8genexpr6__pyx_v_k + 1);
+        __pyx_t_12 = __Pyx_GetItemInt_List(__pyx_v_FacesTriNum, __pyx_t_8, long, 1, __Pyx_PyInt_From_long, 1, 1, 1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 60, __pyx_L19_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_13 = PyTuple_New(2); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 60, __pyx_L19_error)
+        __Pyx_GOTREF(__pyx_t_13);
+        __Pyx_GIVEREF(__pyx_t_10);
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_10)) __PYX_ERR(0, 60, __pyx_L19_error);
+        __Pyx_GIVEREF(__pyx_t_12);
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_13, 1, __pyx_t_12)) __PYX_ERR(0, 60, __pyx_L19_error);
+        __pyx_t_10 = 0;
+        __pyx_t_12 = 0;
+        __pyx_t_12 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_13, NULL); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 60, __pyx_L19_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+        if (likely(PyList_CheckExact(__pyx_t_12)) || PyTuple_CheckExact(__pyx_t_12)) {
+          __pyx_t_13 = __pyx_t_12; __Pyx_INCREF(__pyx_t_13);
+          __pyx_t_14 = 0;
+          __pyx_t_15 = NULL;
+        } else {
+          __pyx_t_14 = -1; __pyx_t_13 = PyObject_GetIter(__pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 60, __pyx_L19_error)
+          __Pyx_GOTREF(__pyx_t_13);
+          __pyx_t_15 = __Pyx_PyObject_GetIterNextFunc(__pyx_t_13); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 60, __pyx_L19_error)
+        }
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        for (;;) {
+          if (likely(!__pyx_t_15)) {
+            if (likely(PyList_CheckExact(__pyx_t_13))) {
+              {
+                Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_13);
+                #if !CYTHON_ASSUME_SAFE_MACROS
+                if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 60, __pyx_L19_error)
+                #endif
+                if (__pyx_t_14 >= __pyx_temp) break;
+              }
+              #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+              __pyx_t_12 = PyList_GET_ITEM(__pyx_t_13, __pyx_t_14); __Pyx_INCREF(__pyx_t_12); __pyx_t_14++; if (unlikely((0 < 0))) __PYX_ERR(0, 60, __pyx_L19_error)
+              #else
+              __pyx_t_12 = __Pyx_PySequence_ITEM(__pyx_t_13, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_GOTREF(__pyx_t_12);
+              #endif
+            } else {
+              {
+                Py_ssize_t __pyx_temp = __Pyx_PyTuple_GET_SIZE(__pyx_t_13);
+                #if !CYTHON_ASSUME_SAFE_MACROS
+                if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 60, __pyx_L19_error)
+                #endif
+                if (__pyx_t_14 >= __pyx_temp) break;
+              }
+              #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+              __pyx_t_12 = PyTuple_GET_ITEM(__pyx_t_13, __pyx_t_14); __Pyx_INCREF(__pyx_t_12); __pyx_t_14++; if (unlikely((0 < 0))) __PYX_ERR(0, 60, __pyx_L19_error)
+              #else
+              __pyx_t_12 = __Pyx_PySequence_ITEM(__pyx_t_13, __pyx_t_14); __pyx_t_14++; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_GOTREF(__pyx_t_12);
+              #endif
+            }
+          } else {
+            __pyx_t_12 = __pyx_t_15(__pyx_t_13);
+            if (unlikely(!__pyx_t_12)) {
+              PyObject* exc_type = PyErr_Occurred();
+              if (exc_type) {
+                if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+                else __PYX_ERR(0, 60, __pyx_L19_error)
+              }
+              break;
+            }
+            __Pyx_GOTREF(__pyx_t_12);
+          }
+          __Pyx_XDECREF_SET(__pyx_8genexpr7__pyx_v_j, __pyx_t_12);
+          __pyx_t_12 = 0;
+          { /* enter inner scope */
+            __pyx_t_12 = PyList_New(0); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 60, __pyx_L19_error)
+            __Pyx_GOTREF(__pyx_t_12);
+            for (__pyx_t_8 = 0; __pyx_t_8 < 3; __pyx_t_8+=1) {
+              __pyx_8genexpr8__pyx_v_i = __pyx_t_8;
+              __pyx_t_10 = __Pyx_PyInt_MultiplyCObj(__pyx_int_3, __pyx_8genexpr7__pyx_v_j, 3, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_GOTREF(__pyx_t_10);
+              __pyx_t_16 = __Pyx_PyInt_From_long(__pyx_8genexpr8__pyx_v_i); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_GOTREF(__pyx_t_16);
+              __pyx_t_17 = PyNumber_Add(__pyx_t_10, __pyx_t_16); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_GOTREF(__pyx_t_17);
+              __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+              __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+              __pyx_t_18 = __Pyx_PyIndex_AsSsize_t(__pyx_t_17); if (unlikely((__pyx_t_18 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+              __pyx_t_17 = __Pyx_PyInt_From_int((__pyx_v_pointer.TriNodes[__pyx_t_18])); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_GOTREF(__pyx_t_17);
+              if (unlikely(__Pyx_ListComp_Append(__pyx_t_12, (PyObject*)__pyx_t_17))) __PYX_ERR(0, 60, __pyx_L19_error)
+              __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
+            }
+          } /* exit inner scope */
+          if (unlikely(__Pyx_ListComp_Append(__pyx_t_7, (PyObject*)__pyx_t_12))) __PYX_ERR(0, 60, __pyx_L19_error)
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        }
+        __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+        __Pyx_XDECREF(__pyx_8genexpr7__pyx_v_j); __pyx_8genexpr7__pyx_v_j = 0;
+        goto __pyx_L25_exit_scope;
+        __pyx_L19_error:;
+        __Pyx_XDECREF(__pyx_8genexpr7__pyx_v_j); __pyx_8genexpr7__pyx_v_j = 0;
+        goto __pyx_L1_error;
+        __pyx_L25_exit_scope:;
+      } /* exit inner scope */
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 60, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    }
+  } /* exit inner scope */
+  __pyx_v_TriNodes = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "mesh.pyx":62
+ *     TriNodes= [[[pointer.TriNodes[3*j + i ] for i in range(3) ]  for j in range( FacesTriNum[k],FacesTriNum[k+1] )   ] for k in range(faces_num) ]
+ * 
+ *     return  eq_coefs, TriNodes             # <<<<<<<<<<<<<<
+ * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_res);
-  __pyx_r = __pyx_v_res;
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_INCREF(__pyx_v_eq_coefs);
+  __Pyx_GIVEREF(__pyx_v_eq_coefs);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_eq_coefs)) __PYX_ERR(0, 62, __pyx_L1_error);
+  __Pyx_INCREF(__pyx_v_TriNodes);
+  __Pyx_GIVEREF(__pyx_v_TriNodes);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_TriNodes)) __PYX_ERR(0, 62, __pyx_L1_error);
+  __pyx_r = __pyx_t_3;
+  __pyx_t_3 = 0;
   goto __pyx_L0;
 
   /* "mesh.pyx":14
  * 
  * 
- * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
+ * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
  * 
- * 
+ *     ### C++ variable construction
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_12);
+  __Pyx_XDECREF(__pyx_t_13);
+  __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_XDECREF(__pyx_t_17);
   { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
     __Pyx_PyThreadState_declare
     __Pyx_PyThreadState_assign
     __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_Faces_nodes.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_active_faces.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_blocks.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer);
@@ -19712,6 +20068,7 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_Faces_nodes.rcbuffer->pybuffer);
   __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_active_faces.rcbuffer->pybuffer);
   __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_blocks.rcbuffer->pybuffer);
   __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_blocks_centroid.rcbuffer->pybuffer);
@@ -19721,7 +20078,13 @@ static PyObject *__pyx_pf_4mesh_print_hello_pyth(CYTHON_UNUSED PyObject *__pyx_s
   __pyx_L2:;
   __Pyx_XDECREF(__pyx_v_brows);
   __Pyx_XDECREF(__pyx_v_bcols);
-  __Pyx_XDECREF(__pyx_v_res);
+  __Pyx_XDECREF(__pyx_v_eq_coefs);
+  __Pyx_XDECREF(__pyx_v_eq_cols);
+  __Pyx_XDECREF(__pyx_v_eq_rows);
+  __Pyx_XDECREF(__pyx_v_mesh_nodes);
+  __Pyx_XDECREF(__pyx_v_FacesTriNum);
+  __Pyx_XDECREF(__pyx_v_TriNodes);
+  __Pyx_XDECREF(__pyx_8genexpr7__pyx_v_j);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -20705,6 +21068,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_s_Dimension_d_is_not_direct, __pyx_k_Dimension_d_is_not_direct, sizeof(__pyx_k_Dimension_d_is_not_direct), 0, 0, 1, 0},
     {&__pyx_n_s_Ellipsis, __pyx_k_Ellipsis, sizeof(__pyx_k_Ellipsis), 0, 0, 1, 1},
     {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
+    {&__pyx_n_s_FacesTriNum, __pyx_k_FacesTriNum, sizeof(__pyx_k_FacesTriNum), 0, 0, 1, 1},
+    {&__pyx_n_s_Faces_nodes, __pyx_k_Faces_nodes, sizeof(__pyx_k_Faces_nodes), 0, 0, 1, 1},
     {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
     {&__pyx_kp_s_Incompatible_checksums_0x_x_vs_0, __pyx_k_Incompatible_checksums_0x_x_vs_0, sizeof(__pyx_k_Incompatible_checksums_0x_x_vs_0), 0, 0, 1, 0},
     {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
@@ -20720,6 +21085,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_PickleError, __pyx_k_PickleError, sizeof(__pyx_k_PickleError), 0, 0, 1, 1},
     {&__pyx_n_s_Sequence, __pyx_k_Sequence, sizeof(__pyx_k_Sequence), 0, 0, 1, 1},
     {&__pyx_kp_s_Step_may_not_be_zero_axis_d, __pyx_k_Step_may_not_be_zero_axis_d, sizeof(__pyx_k_Step_may_not_be_zero_axis_d), 0, 0, 1, 0},
+    {&__pyx_n_s_TriNodes, __pyx_k_TriNodes, sizeof(__pyx_k_TriNodes), 0, 0, 1, 1},
     {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
     {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
     {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
@@ -20743,6 +21109,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_brows, __pyx_k_brows, sizeof(__pyx_k_brows), 0, 0, 1, 1},
     {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
     {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
+    {&__pyx_n_s_c_Faces_nodes, __pyx_k_c_Faces_nodes, sizeof(__pyx_k_c_Faces_nodes), 0, 0, 1, 1},
     {&__pyx_n_s_c_active_faces, __pyx_k_c_active_faces, sizeof(__pyx_k_c_active_faces), 0, 0, 1, 1},
     {&__pyx_n_s_c_blocks, __pyx_k_c_blocks, sizeof(__pyx_k_c_blocks), 0, 0, 1, 1},
     {&__pyx_n_s_c_blocks_centroid, __pyx_k_c_blocks_centroid, sizeof(__pyx_k_c_blocks_centroid), 0, 0, 1, 1},
@@ -20764,6 +21131,9 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u_enable, __pyx_k_enable, sizeof(__pyx_k_enable), 0, 1, 0, 0},
     {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
     {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
+    {&__pyx_n_s_eq_coefs, __pyx_k_eq_coefs, sizeof(__pyx_k_eq_coefs), 0, 0, 1, 1},
+    {&__pyx_n_s_eq_cols, __pyx_k_eq_cols, sizeof(__pyx_k_eq_cols), 0, 0, 1, 1},
+    {&__pyx_n_s_eq_rows, __pyx_k_eq_rows, sizeof(__pyx_k_eq_rows), 0, 0, 1, 1},
     {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
     {&__pyx_n_s_faces_FEpts, __pyx_k_faces_FEpts, sizeof(__pyx_k_faces_FEpts), 0, 0, 1, 1},
     {&__pyx_n_s_faces_num, __pyx_k_faces_num, sizeof(__pyx_k_faces_num), 0, 0, 1, 1},
@@ -20784,10 +21154,13 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u_isenabled, __pyx_k_isenabled, sizeof(__pyx_k_isenabled), 0, 1, 0, 0},
     {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
     {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
+    {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
+    {&__pyx_n_s_k, __pyx_k_k, sizeof(__pyx_k_k), 0, 0, 1, 1},
     {&__pyx_n_s_local_ref, __pyx_k_local_ref, sizeof(__pyx_k_local_ref), 0, 0, 1, 1},
     {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
     {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
     {&__pyx_n_s_mesh, __pyx_k_mesh, sizeof(__pyx_k_mesh), 0, 0, 1, 1},
+    {&__pyx_n_s_mesh_nodes, __pyx_k_mesh_nodes, sizeof(__pyx_k_mesh_nodes), 0, 0, 1, 1},
     {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
     {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
     {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
@@ -20818,7 +21191,6 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
     {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
     {&__pyx_n_s_register, __pyx_k_register, sizeof(__pyx_k_register), 0, 0, 1, 1},
-    {&__pyx_n_s_res, __pyx_k_res, sizeof(__pyx_k_res), 0, 0, 1, 1},
     {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
     {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
     {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
@@ -20845,7 +21217,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
 }
 /* #### Code section: cached_builtins ### */
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 51, __pyx_L1_error)
   __pyx_builtin___import__ = __Pyx_GetBuiltinName(__pyx_n_s_import); if (!__pyx_builtin___import__) __PYX_ERR(1, 100, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 141, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 156, __pyx_L1_error)
@@ -21028,14 +21400,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "mesh.pyx":14
  * 
  * 
- * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
+ * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
  * 
- * 
+ *     ### C++ variable construction
  */
-  __pyx_tuple__22 = PyTuple_Pack(23, __pyx_n_s_active_faces, __pyx_n_s_blocks, __pyx_n_s_nodes, __pyx_n_s_faces_FEpts, __pyx_n_s_blocks_centroid, __pyx_n_s_local_ref, __pyx_n_s_c_active_faces, __pyx_n_s_active_faces_num, __pyx_n_s_c_nodes, __pyx_n_s_c_blocks, __pyx_n_s_c_blocks_centroid, __pyx_n_s_c_local_ref, __pyx_n_s_nrows, __pyx_n_s_ncols, __pyx_n_s_blocks_num, __pyx_n_s_centroid_cols, __pyx_n_s_c_facesFEpts, __pyx_n_s_faces_num, __pyx_n_s_brows, __pyx_n_s_bcols, __pyx_n_s_pointer, __pyx_n_s_res, __pyx_n_s_i); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(38, __pyx_n_s_active_faces, __pyx_n_s_blocks, __pyx_n_s_nodes, __pyx_n_s_faces_FEpts, __pyx_n_s_Faces_nodes, __pyx_n_s_blocks_centroid, __pyx_n_s_local_ref, __pyx_n_s_c_Faces_nodes, __pyx_n_s_c_active_faces, __pyx_n_s_active_faces_num, __pyx_n_s_c_nodes, __pyx_n_s_c_blocks, __pyx_n_s_c_blocks_centroid, __pyx_n_s_c_local_ref, __pyx_n_s_nrows, __pyx_n_s_ncols, __pyx_n_s_blocks_num, __pyx_n_s_centroid_cols, __pyx_n_s_c_facesFEpts, __pyx_n_s_faces_num, __pyx_n_s_brows, __pyx_n_s_bcols, __pyx_n_s_pointer, __pyx_n_s_eq_coefs, __pyx_n_s_eq_cols, __pyx_n_s_eq_rows, __pyx_n_s_mesh_nodes, __pyx_n_s_FacesTriNum, __pyx_n_s_TriNodes, __pyx_n_s_i, __pyx_n_s_i, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_i, __pyx_n_s_i, __pyx_n_s_k, __pyx_n_s_j, __pyx_n_s_i); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(6, 0, 0, 23, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_C_work_dev_mesh_mesh_pyx, __pyx_n_s_print_hello_pyth, 14, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(7, 0, 0, 38, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_C_work_dev_mesh_mesh_pyx, __pyx_n_s_print_hello_pyth, 14, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -22149,9 +22521,9 @@ if (!__Pyx_RefNanny) {
   /* "mesh.pyx":14
  * 
  * 
- * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
+ * def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):             # <<<<<<<<<<<<<<
  * 
- * 
+ *     ### C++ variable construction
  */
   __pyx_t_7 = __Pyx_CyFunction_New(&__pyx_mdef_4mesh_1print_hello_pyth, 0, __pyx_n_s_print_hello_pyth, NULL, __pyx_n_s_mesh, __pyx_d, ((PyObject *)__pyx_codeobj__23)); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
@@ -25223,6 +25595,153 @@ fail:;
   __Pyx_SafeReleaseBuffer(buf);
   return -1;
 }
+
+/* PyIntBinop */
+  #if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_MultiplyCObj(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check) {
+    CYTHON_MAYBE_UNUSED_VAR(intval);
+    CYTHON_MAYBE_UNUSED_VAR(inplace);
+    CYTHON_UNUSED_VAR(zerodivision_check);
+    #if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_CheckExact(op2))) {
+        const long a = intval;
+        long b = PyInt_AS_LONG(op2);
+        
+#ifdef HAVE_LONG_LONG
+            if (sizeof(PY_LONG_LONG) > sizeof(long)) {
+                PY_LONG_LONG result = (PY_LONG_LONG)a * (PY_LONG_LONG)b;
+                return (result >= LONG_MIN && result <= LONG_MAX) ?
+                    PyInt_FromLong((long)result) : PyLong_FromLongLong(result);
+            }
+#endif
+#if CYTHON_USE_TYPE_SLOTS
+            return PyInt_Type.tp_as_number->nb_multiply(op1, op2);
+#else
+            return PyNumber_Multiply(op1, op2);
+#endif
+    }
+    #endif
+    #if CYTHON_USE_PYLONG_INTERNALS
+    if (likely(PyLong_CheckExact(op2))) {
+        const long a = intval;
+        long b, x;
+#ifdef HAVE_LONG_LONG
+        const PY_LONG_LONG lla = intval;
+        PY_LONG_LONG llb, llx;
+#endif
+        if (unlikely(__Pyx_PyLong_IsZero(op2))) {
+            return __Pyx_NewRef(op2);
+        }
+        if (likely(__Pyx_PyLong_IsCompact(op2))) {
+            b = __Pyx_PyLong_CompactValue(op2);
+        } else {
+            const digit* digits = __Pyx_PyLong_Digits(op2);
+            const Py_ssize_t size = __Pyx_PyLong_SignedDigitCount(op2);
+            switch (size) {
+                case -2:
+                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT+30) {
+                        b = -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+                    #ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT+30) {
+                        llb = -(PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+                    #endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 2:
+                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT+30) {
+                        b = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+                    #ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT+30) {
+                        llb = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+                    #endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case -3:
+                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT+30) {
+                        b = -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+                    #ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT+30) {
+                        llb = -(PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+                    #endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 3:
+                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT+30) {
+                        b = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+                    #ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT+30) {
+                        llb = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+                    #endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case -4:
+                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT+30) {
+                        b = -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+                    #ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT+30) {
+                        llb = -(PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+                    #endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 4:
+                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT+30) {
+                        b = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+                    #ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT+30) {
+                        llb = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+                    #endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                default: return PyLong_Type.tp_as_number->nb_multiply(op1, op2);
+            }
+        }
+                CYTHON_UNUSED_VAR(a);
+                CYTHON_UNUSED_VAR(b);
+                #ifdef HAVE_LONG_LONG
+                llb = b;
+                goto long_long;
+                #else
+                return PyLong_Type.tp_as_number->nb_multiply(op1, op2);
+                #endif
+            return PyLong_FromLong(x);
+#ifdef HAVE_LONG_LONG
+        long_long:
+                llx = lla * llb;
+            return PyLong_FromLongLong(llx);
+#endif
+        
+        
+    }
+    #endif
+    if (PyFloat_CheckExact(op2)) {
+        const long a = intval;
+#if CYTHON_COMPILING_IN_LIMITED_API
+        double b = __pyx_PyFloat_AsDouble(op2);
+#else
+        double b = PyFloat_AS_DOUBLE(op2);
+#endif
+            double result;
+            
+            PyFPE_START_PROTECT("multiply", return NULL)
+            result = ((double)a) * (double)b;
+            PyFPE_END_PROTECT(result)
+            return PyFloat_FromDouble(result);
+    }
+    return (inplace ? PyNumber_InPlaceMultiply : PyNumber_Multiply)(op1, op2);
+}
+#endif
 
 /* PyObject_GenericGetAttrNoDict */
   #if CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP && PY_VERSION_HEX < 0x03070000

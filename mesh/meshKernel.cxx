@@ -262,7 +262,7 @@ void printVector(const std::vector<T>& vec) {
 }
 
 
-Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, double* nodes, int* active_faces, int active_faces_num, int nrows, int ncols, int* faces_FEpts, int faces_num, double* blocks_centroid, double* c_local_ref) {
+Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, double* nodes, int* active_faces, int active_faces_num, int nrows, int ncols, int* faces_FEpts, int* Faces_nodes, int faces_num, double* blocks_centroid, double* c_local_ref) {
     // Modify the value of the first element of the array
    
     std::unordered_map<int,int> active_faces_map;
@@ -286,12 +286,14 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
     { 
 
 
-        double lc = 10; // Mesh element size
+        double lc = 1; // Mesh element size
         // Create points and get tags
         std::vector<size_t> node_tags;
         for (size_t i = faces_FEpts[j]; i < faces_FEpts[j+1]; i += 1) {
-            
-            int tag = gmsh::model::geo::addPoint(nodes[3*i], nodes[3*i + 1], nodes[3*i + 2], lc);
+
+            int face_node = Faces_nodes[i] - 1;
+
+            int tag = gmsh::model::geo::addPoint(nodes[3* face_node], nodes[3* face_node + 1], nodes[3* face_node + 2], lc);
             
             node_tags.push_back(tag);
             nodes_tags.push_back(tag);
@@ -331,7 +333,7 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
 
     // We finally generate and save the mesh:
     gmsh::model::mesh::generate(2);
-    gmsh::write("t2.msh");
+    gmsh::write("t4.msh");
 
     // Stop measuring time
     auto end = std::chrono::high_resolution_clock::now();
@@ -339,8 +341,7 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
     std::vector<double> pcoords;
     gmsh::model::mesh::getNodes(nodes_tags, Points_coords, pcoords);  // Coordinates of the mesh nodes
     
-
-
+    
 
     std::vector<int> elementTypes;
     std::vector<std::vector<std::size_t>> elementTags;
@@ -368,8 +369,6 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
         
     }
 
-    //printVector(TriNodes);
-    //printVector(FacesTriNum);
     gmsh::finalize();
 
     
@@ -418,16 +417,6 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
         std::vector<int> eq_cols;
         std::vector<int> eq_rows;
 
-        //std::vector<double> fxeq_coefs;
-        //std::vector<int> fxeq_rows;
-        //std::unordered_set<int> fxeq_cols;
-        
-        
-
-
-        
-
-
         for (int i = 0; i < brows; ++i)
         {
             int face_ind = blocks[i * bcols + 1];
@@ -455,6 +444,7 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
                 block_centroid << blocks_centroid[4 * block_ind - 3], blocks_centroid[4 * block_ind - 2], blocks_centroid[4 * block_ind - 1];
 
                 int face_pos = active_faces_map[face_ind];
+
                 std::cout <<face_pos << "hereeee" << std::endl;
 
                 for (int Tri_ind = FacesTriNum[face_pos - 1]; Tri_ind < FacesTriNum[face_pos]; ++Tri_ind)
@@ -602,27 +592,7 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
 
                 }
             
-            
-            
-           /* for (const auto& term : fxeq_coefs)
-            {
-                printf("helloooo");
-                std::cout << term.first << "," << term.second << std::endl;
-            }
-            printf("/n");
-
-            for (const auto& term : fyeq_coefs)
-            {
-                printf("helloooo");
-                std::cout << term.first << "," << term.second << std::endl;
-            }
-            printf("/n");*/
-            for (const auto& term : mzeq_coefs)
-            {
-                printf("helloooo");
-                std::cout << term.first << "," << term.second << std::endl;
-            }
-            
+        
             
                 for (const auto& pair : fxeq_coefs)
                 {
@@ -675,22 +645,59 @@ Pointers print_hello_c(double* blocks, int brows, int bcols, int blocks_num, dou
             }
             
 }
-           printVector(eq_coefs);
-            printVector(eq_cols);
-            printVector(eq_rows);
-
-            double val1[] = { 10 ,5,3,4,6,7 };
       
-            int val2 = 6;
-            Pointers A;
-            A.ptr1 = val2;
-            A.ptr2 = val1;
 
-            std::cout << A.ptr1 << std::endl;
-            
+            // Allocate memory for the array
+            double* eq_coefs_pt = new double[eq_coefs.size()+1];
+            int* eq_cols_pt = new int[eq_cols.size() + 1];
+            int* eq_rows_pt = new int[eq_rows.size() + 1];
+
+
+            // Copy elements from vector to array
+            for (size_t i = 0; i < eq_coefs.size(); ++i) {
+                eq_coefs_pt[i] = eq_coefs[i];
+            }
+          
+            for (size_t i = 0; i < eq_cols.size(); ++i) {
+                eq_cols_pt[i] = eq_cols[i];
+            }
+            for (size_t i = 0; i < eq_rows.size(); ++i) {
+                eq_rows_pt[i] = eq_rows[i];
+            }
+
+
 
             // Assign addresses of values to ptr1 and ptr2
-            
+            Output A;
+            A.sparse_dim = eq_coefs.size();
+            A.eq_coefs = eq_coefs_pt;
+            A.eq_cols = eq_cols_pt;
+            A.eq_rows = eq_rows_pt;
+
+
+            double* Points_coords_pt = new double[Points_coords.size() + 1];
+            int* TriNodes_pt = new int[TriNodes.size() + 1];
+            int* FacesTriNum_pt = new int[FacesTriNum.size() + 1];
+
+            for (size_t i = 0; i < Points_coords.size(); ++i) {
+                Points_coords_pt[i] = Points_coords[i];
+            }
+
+            for (size_t i = 0; i < TriNodes.size(); ++i) {
+                TriNodes_pt[i] = TriNodes[i];
+            }
+
+            for (size_t i = 0; i < FacesTriNum.size(); ++i) {
+                FacesTriNum_pt[i] = FacesTriNum[i];
+            }
+
+            A.mesh_nodes = Points_coords_pt;
+            A.TriNodes = TriNodes_pt;
+            A.FacesTriNum = FacesTriNum_pt;
+         /*   A.TriNodes = 
+                int* FacesTir_num;
+            FacesTriNum*/
+            printVector(TriNodes);
 
         return A;
        

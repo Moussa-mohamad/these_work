@@ -11,9 +11,10 @@ np.import_array()
 
 
 
-def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):
+def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):
     
-
+    ### C++ variable construction
+    cdef int* c_Faces_nodes = <int*>Faces_nodes.data
 
     cdef int* c_active_faces = <int*>active_faces.data
     cdef int active_faces_num = active_faces.shape[0]
@@ -30,9 +31,6 @@ def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, nd
     cdef int blocks_num = blocks_centroid.shape[0]
     cdef int centroid_cols = blocks_centroid.shape[1]
 
-    #cdef int ref_rows = ref.shape[0]
-    #cdef int ref_cols = ref.shape[1]
-
     cdef int* c_facesFEpts = <int*>faces_FEpts.data
     
     cdef int faces_num = faces_FEpts.shape[0] -1
@@ -40,25 +38,26 @@ def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, nd
     cdef brows = blocks.shape[0]
     cdef bcols = blocks.shape[1]
 
-    cdef  Pointers pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, faces_num, c_blocks_centroid, c_local_ref   )
+    ### Call C++ function 
+
+    cdef  Output pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, c_Faces_nodes, faces_num, c_blocks_centroid, c_local_ref   )
   
    
     #res = np.asarray( pointer.ptr1, dtype=np.int32)
-    #res = np.asarray(<np.float64_t[:nrows]> pointer.ptr1)
-
-
-   
-
-
-    #res = np.asarray(<int[:4]> pointer.ptr1).tolist()
-    #print(res)
-
-    #np.asarray(<np.float64_t[:cArray.shape[0]]> cArray.data).tolist()
-    #res = np.asarray(pointer.ptr2, dtype=np.float64)[:20]
-
-    res = [pointer.ptr2[i] for i in range(pointer.ptr1)]  # Assuming 4 elements in pointer.ptr1
-
-    # af = <np.long[:rows,:cols]> pointer
+    #res = np.asarray(<np.float64_t[:pointer.ptr1]> pointer.ptr2)
     
-    # anarrray = anarrray.tolist()
-    return res
+    ### Convert C++ to python 
+
+    eq_coefs = [pointer.eq_coefs[i] for i in range(pointer.sparse_dim) ]  
+    eq_cols = [pointer.eq_cols[i] for i in range(pointer.sparse_dim) ]  
+    eq_rows = [pointer.eq_rows[i] for i in range(pointer.sparse_dim) ]  
+    mesh_nodes = [[ pointer.mesh_nodes[3*j + i] for i in range(3) ] for j in range(3) ]
+
+    #TriNodes = [pointer.TriNodes[i] for i in range(pointer.sparse_dim) ]  
+
+    FacesTriNum = [pointer.FacesTriNum[i] for i in range(faces_num + 1) ]
+    
+    TriNodes= [[[pointer.TriNodes[3*j + i ] for i in range(3) ]  for j in range( FacesTriNum[k],FacesTriNum[k+1] )   ] for k in range(faces_num) ] 
+
+    return  eq_coefs, TriNodes
+
