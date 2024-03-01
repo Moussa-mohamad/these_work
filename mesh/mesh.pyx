@@ -11,9 +11,11 @@ np.import_array()
 
 
 
-def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref ):
+def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, ndim=2] blocks, np.ndarray[double, ndim=2] nodes , np.ndarray[int, ndim=1] faces_FEpts, np.ndarray[int, ndim=1] Faces_nodes,  np.ndarray[double, ndim=2] blocks_centroid, np.ndarray[double, ndim=2] local_ref, double lc ):
     
     ### C++ variable construction
+    cdef double c_lc = <int> lc
+
     cdef int* c_Faces_nodes = <int*>Faces_nodes.data
 
     cdef int* c_active_faces = <int*>active_faces.data
@@ -40,8 +42,9 @@ def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, nd
 
     ### Call C++ function 
 
-    cdef  Output pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, c_Faces_nodes, faces_num, c_blocks_centroid, c_local_ref   )
+    cdef  Output pointer = print_hello_c(c_blocks, brows, bcols,blocks_num, c_nodes , c_active_faces,  active_faces_num, nrows, ncols, c_facesFEpts, c_Faces_nodes, faces_num, c_blocks_centroid, c_local_ref,  lc   )
   
+
    
     #res = np.asarray( pointer.ptr1, dtype=np.int32)
     #res = np.asarray(<np.float64_t[:pointer.ptr1]> pointer.ptr2)
@@ -51,7 +54,9 @@ def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, nd
     eq_coefs = [pointer.eq_coefs[i] for i in range(pointer.sparse_dim) ]  
     eq_cols = [pointer.eq_cols[i] for i in range(pointer.sparse_dim) ]  
     eq_rows = [pointer.eq_rows[i] for i in range(pointer.sparse_dim) ]  
-    mesh_nodes = [[ pointer.mesh_nodes[3*j + i] for i in range(3) ] for j in range(3) ]
+
+
+    mesh_nodes = [[ pointer.mesh_nodes[3*j + i] for i in range(3) ] for j in range(pointer.pts_num) ]
 
     #TriNodes = [pointer.TriNodes[i] for i in range(pointer.sparse_dim) ]  
 
@@ -59,5 +64,5 @@ def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, nd
     
     TriNodes= [[[pointer.TriNodes[3*j + i ] for i in range(3) ]  for j in range( FacesTriNum[k],FacesTriNum[k+1] )   ] for k in range(faces_num) ] 
 
-    return  eq_coefs, TriNodes
+    return  eq_coefs, eq_rows, eq_cols, mesh_nodes, TriNodes, FacesTriNum
 

@@ -262,7 +262,7 @@ void printVector(const std::vector<T>& vec) {
 }
 
 
-Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, double* nodes, int* active_faces, int active_faces_num, int nrows, int ncols, int* faces_FEpts, int* Faces_nodes, int faces_num, double* blocks_centroid, double* c_local_ref) {
+Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, double* nodes, int* active_faces, int active_faces_num, int nrows, int ncols, int* faces_FEpts, int* Faces_nodes, int faces_num, double* blocks_centroid, double* c_local_ref, double lc) {
     // Modify the value of the first element of the array
    
     std::unordered_map<int,int> active_faces_map;
@@ -279,16 +279,18 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
     gmsh::initialize();
     
     
-    //std::vector<int> indices = {0,4,8};
+    //std::vector<int> indices 
     std::vector<size_t> nodes_tags;
+
+    // Create lines and get tags
+    std::vector<int> line_tags;
+    // Create points and get tags
+    std::vector<size_t> node_tags;
+    //double lc = 0.1; // Mesh element size
 
     for (int j = 0; j < faces_num ; j += 1)
     { 
 
-
-        double lc = 1; // Mesh element size
-        // Create points and get tags
-        std::vector<size_t> node_tags;
         for (size_t i = faces_FEpts[j]; i < faces_FEpts[j+1]; i += 1) {
 
             int face_node = Faces_nodes[i] - 1;
@@ -296,16 +298,17 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             int tag = gmsh::model::geo::addPoint(nodes[3* face_node], nodes[3* face_node + 1], nodes[3* face_node + 2], lc);
             
             node_tags.push_back(tag);
+            
             nodes_tags.push_back(tag);
             //std::cout << tag << std::endl;
         }
 
-        // Create lines and get tags
-        std::vector<int> line_tags;
+        
 
         for (int i = 0; i < faces_FEpts[j + 1] - faces_FEpts[j] ; i += 1 ) {
             
-            
+            std::cout << "tags"  << std::endl;
+            printVector(node_tags);
             int start = node_tags[i];
             
             int end = node_tags[(i + 1) % (faces_FEpts[j + 1] - faces_FEpts[j])]; // To close the loop
@@ -315,7 +318,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
            
             
         }
-
+       
         // Create curve loop
         
 
@@ -325,6 +328,8 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
 
         int surface_tag = gmsh::model::geo::addPlaneSurface({ curve_loop_tag });
 
+        node_tags.clear(); // Clears the content of the original nodes_tags vector
+        line_tags.clear(); // Clears the content of the original nodes_tags vector
 
     }
     gmsh::model::geo::synchronize();
@@ -333,7 +338,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
 
     // We finally generate and save the mesh:
     gmsh::model::mesh::generate(2);
-    gmsh::write("t4.msh");
+    gmsh::write("C:\\work_dev\\build\\mesh\\Release\\t4.msh");
 
     // Stop measuring time
     auto end = std::chrono::high_resolution_clock::now();
@@ -373,7 +378,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
 
     
 
-
+    printVector(Points_coords);
     // Calculate the duration
     std::chrono::duration<double> duration = end - start;
 
@@ -421,7 +426,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
         {
             int face_ind = blocks[i * bcols + 1];
             int block_ind = blocks[i * bcols ];
-            int face_rk = blocks[i * bcols + 5]; 
+            int face_rk = blocks[i * bcols + 6]; 
 
             int sign = 1;
 
@@ -435,9 +440,9 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             {
 
 
-                local_ref << sign * c_local_ref[10 * (face_ind - 1) + 1], sign* c_local_ref[10 * (face_ind - 1) + 2], sign* c_local_ref[10 * (face_ind - 1) + 3],
-                    sign* c_local_ref[10 * (face_ind - 1) + 4], sign* c_local_ref[10 * (face_ind - 1) + 5], sign* c_local_ref[10 * (face_ind - 1) + 6],
-                    sign* c_local_ref[10 * (face_ind - 1) + 7], sign* c_local_ref[10 * (face_ind - 1) + 8], sign* c_local_ref[10 * (face_ind - 1) + 9];
+                local_ref << sign * c_local_ref[10 * (face_ind - 1) + 4], sign* c_local_ref[10 * (face_ind - 1) + 5], sign* c_local_ref[10 * (face_ind - 1) + 6],
+                    sign* c_local_ref[10 * (face_ind - 1) + 7], sign* c_local_ref[10 * (face_ind - 1) + 8], sign* c_local_ref[10 * (face_ind - 1) + 9],
+                    sign* c_local_ref[10 * (face_ind - 1) + 1], sign* c_local_ref[10 * (face_ind - 1) + 2], sign* c_local_ref[10 * (face_ind - 1) + 3];
 
 
 
@@ -450,7 +455,13 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                 for (int Tri_ind = FacesTriNum[face_pos - 1]; Tri_ind < FacesTriNum[face_pos]; ++Tri_ind)
                 {
                     int Triangle_nodes[3] = { TriNodes[3 * Tri_ind], TriNodes[3 * Tri_ind + 1], TriNodes[3 * Tri_ind + 2] };
-
+                    
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        std::cout << Triangle_nodes[i];
+                        
+                    }
+                    std::cout << std::endl;
                     //std::cout << "nodessssssssssss" << Triangle_nodes[0] << Triangle_nodes[1] << Triangle_nodes[2] << std::endl;
 
                     Tri_nodes_coor << Points_coords[3 * Triangle_nodes[0] - 3], Points_coords[3 * Triangle_nodes[0] - 2], Points_coords[3 * Triangle_nodes[0] - 1],
@@ -556,15 +567,15 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                             if (abs(moment_terms_ref[node * 9 + col]) > 1e-5)
                             {
 
-                                auto it = myeq_coefs.find((Triangle_nodes[node] - 1) * 3 + col);
+                                auto it = myeq_coefs.find((Triangle_nodes[node] - 1) * 3 + col - 3);
                                 if (it == myeq_coefs.end())
 
-                                    myeq_coefs.insert({ (Triangle_nodes[node] - 1) * 3 + col ,moment_terms_ref[node * 9 + col] });
+                                    myeq_coefs.insert({ (Triangle_nodes[node] - 1) * 3 + col -3 ,moment_terms_ref[node * 9 + col] });
                                 //fxeq_rows.push_back((block_ind - 1) * 6);
 
                                 else
 
-                                    myeq_coefs[(Triangle_nodes[node] - 1) * 3 + col] += moment_terms_ref[node * 9 + col];
+                                    myeq_coefs[(Triangle_nodes[node] - 1) * 3 + col - 3] += moment_terms_ref[node * 9 + col];
                             }
                         }
                     }
@@ -577,15 +588,15 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                             if (abs(moment_terms_ref[node * 9 + col]) > 1e-5)
                             {
 
-                                auto it = mzeq_coefs.find((Triangle_nodes[node] - 1) * 3 + col);
+                                auto it = mzeq_coefs.find((Triangle_nodes[node] - 1) * 3 + col - 6);
                                 if (it == mzeq_coefs.end())
 
-                                    mzeq_coefs.insert({ (Triangle_nodes[node] - 1) * 3 + col ,moment_terms_ref[node * 9 + col] });
+                                    mzeq_coefs.insert({ (Triangle_nodes[node] - 1) * 3 + col - 6 ,moment_terms_ref[node * 9 + col] });
                                 //fxeq_rows.push_back((block_ind - 1) * 6);
 
                                 else
 
-                                    mzeq_coefs[(Triangle_nodes[node] - 1) * 3 + col] += moment_terms_ref[node * 9 + col];
+                                    mzeq_coefs[(Triangle_nodes[node] - 1) * 3 + col - 6] += moment_terms_ref[node * 9 + col];
                             }
                         }
                     }
@@ -593,9 +604,10 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                 }
             
         
-            
+                
                 for (const auto& pair : fxeq_coefs)
                 {
+                    std::cout << pair.first <<pair.second << std::endl;
                     eq_coefs.push_back(pair.second);
                     eq_cols.push_back(pair.first);
                     eq_rows.push_back((block_ind - 1) * 6);
@@ -646,7 +658,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             
 }
       
-
+            printVector(eq_cols);
             // Allocate memory for the array
             double* eq_coefs_pt = new double[eq_coefs.size()+1];
             int* eq_cols_pt = new int[eq_cols.size() + 1];
@@ -694,6 +706,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             A.mesh_nodes = Points_coords_pt;
             A.TriNodes = TriNodes_pt;
             A.FacesTriNum = FacesTriNum_pt;
+            A.pts_num = int((Points_coords.size()) / 3);
          /*   A.TriNodes = 
                 int* FacesTir_num;
             FacesTriNum*/
