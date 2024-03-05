@@ -38,10 +38,17 @@ struct Output {
     double* eq_coefs;
     int* eq_cols;
     int* eq_rows;
-    double* mesh_nodes;
-    int* TriNodes;
-    int* FacesTriNum;
-    int pts_num;
+    
+    double* ContactsPointsCoords;
+    int* ContactsTriNodes;
+    int* ContactsTriNum;
+    int Contacts_pts_num;
+
+    double* NContactsPointsCoords;
+    int* NContactsTriNodes;
+    int* NContactsTriNum;
+    int NContacts_pts_num;
+
 
     //// Destructor to release memory allocated for ptr2
     //~Pointers() {
@@ -52,4 +59,4 @@ struct Output {
 
 
 
-Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, double* nodes, int* active_faces, int active_faces_num, int nrows, int ncols, int* faces_FEpts, int* Faces_nodes, int faces_num, double* blocks_centroid, double* c_local_ref, double lc);
+Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, double* nodes, int* active_faces, int active_faces_num, int nrows, int ncols, int* faces_FEpts, int* Faces_nodes, int faces_num, double* blocks_centroid, double* c_local_ref, double *lc);

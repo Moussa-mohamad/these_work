@@ -15,144 +15,6 @@ from pyevtk.hl import unstructuredGridToVTK
 from pyevtk.vtk import VtkTriangle, VtkQuad, VtkVertex
 import mesh
 
-def find_element_in_matrix(matrix, element):
-    for i, row in enumerate(matrix):
-        if element in row:
-            return i  # Return the index of the row where the element is found
-    return -1  # Return -1 if the element is not found in any row
-
-def stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num,all_triangles,stat_sol):
-    FILE_PATH = "C:\\Users\\mmoussa\\Desktop\\rhino_test\\stat_stress"
-    print("Running unstructured...")
-    
-    normal_load = [ round(stat_sol[ind+2],2)   for ind in range(0,len(stat_sol[0:-1:]),3) ]
-    shear_loadx = [ round(stat_sol[ind],2)   for ind in range(0,len(stat_sol[0:-1:]),3) ]
-    shear_loady = [ round(stat_sol[ind+1],2)   for ind in range(0,len(stat_sol[0:-1:]),3) ]
-    
-    all_unique_points = np.array(all_unique_points)
-    print(all_unique_points)
-    print(all_triangles)
-    # Define vertices
-    x = [float(element) for element in all_unique_points[:, 0]]
-    y = [float(element) for element in all_unique_points[:, 1]]
-    z = [float(element) for element in all_unique_points[:, 2]]
-
-    x = np.array(x, dtype = np.float64)
-    y = np.array(y,dtype = np.float64)
-    z = np.array(z,dtype = np.float64)
-    
-
-    # Define connectivity or vertices that belong to each element
-    conn = np.zeros(3*triangles_num, dtype = np.int32)
-    # Define offset of the last vertex of each element
-    offset = np.zeros(triangles_num , dtype = np.int32)
-    # Define cell types
-    ctype = np.zeros(triangles_num)
-    print(x)
-    print(y)
-    print(z)
-    print(conn)
-    print(offset)
-    
-    tri_ind = 0
- 
-    for face_triangles in all_triangles:
-        print(face_triangles)
-        for triangle in face_triangles:
-            print(type(triangle[0]))
-            conn[3*tri_ind], conn[3*tri_ind + 1], conn[3*tri_ind +2] = int(triangle[0]-1), int(triangle[1]-1), int(triangle[2]-1)  # first triangle
-            offset[tri_ind] = 3*tri_ind +3
-            ctype[tri_ind] = VtkTriangle.tid
-            tri_ind += 1
-        
-    print(conn)
-    print(offset)
-    
-    #cd = np.random.rand(2)
-    cellData = {"pressure": []}
-
-    # Define displacement components
-    normal_stress = np.array(normal_load)
-    shear_stress1 = np.array(shear_loadx)
-    shear_stress2 = np.array(shear_loady)
-    
-    print(normal_stress)
-
-    # Combine displacement components into separate arrays
-    pointData = {"normal_stress":normal_stress, "shear_stress1": shear_stress1, "shear_stress2": shear_stress2  }
-
-  
-    
-    # Add combined displacement to pointData
-    #pointData["displacement"] = displacement
-    
-    unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
-    
-    
-    FILE_PATH = "C:\\Users\\mmoussa\\Desktop\\rhino_test\\stat_body"
-    
-    
-  
-    # Define vertices
-    
-    
-    x = []
-    y = []
-    z = []
-    for triangle in noc_triangles_coor:
-        x += [float(element) for element in triangle[:, 0]  ]
-        y += [float(element) for element in triangle[:, 1]  ]
-        z += [float(element) for element in triangle[:, 2]  ]
-
-    x = np.array(x)
-    y = np.array(y)
-    z = np.array(z)
-    
-
-    # Define connectivity or vertices that belong to each element
-    conn = np.zeros(3*noc_triangles.shape[0])
-    # Define offset of the last vertex of each element
-    offset = np.zeros(noc_triangles.shape[0])
-    # Define cell types
-    ctype = np.zeros(noc_triangles.shape[0])
-    
-    for ind, triangle in enumerate(noc_triangles):
-        conn[3*ind], conn[3*ind + 1], conn[3*ind +2] = 3*ind, 3*ind + 1, 3*ind + 2  # first triangle
-        offset[ind] = 3*ind +3
-        ctype[ind] = VtkTriangle.tid
-    
-    pointData = {'d': np.ones(x.shape[0])}
-
-    #unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
-def remove_columns_and_sparse(dense_matrix, columns_to_remove):
-    # Remove specified columns
-    modified_matrix = np.delete(dense_matrix, columns_to_remove, axis=1)
-
-    # Convert the modified matrix to a sparse matrix
-    sparse_matrix = coo_matrix(modified_matrix)
-
-    # Extract values, rows, and columns indices from the sparse matrix
-    values = sparse_matrix.data
-    rows = sparse_matrix.row
-    cols = sparse_matrix.col
-
-    return values, rows, cols
-
-def streamprinter(text):
-    sys.stdout.write(text)
-    sys.stdout.flush()
-
-def vector_coefficients(u, basis):
-    coefficients = []
-    for basis_vector in basis:
-        coeff = np.dot(u, basis_vector) / np.dot(basis_vector, basis_vector)
-        coefficients.append(coeff)
-    return coefficients
-
-def sparse_to_dense(sparse_matrix):
-    values, rows, cols = sparse_matrix
-    dense_matrix = coo_matrix((values, (rows, cols))).toarray()
-    return dense_matrix
 
 def calculate_moment(point_coords, force_coords, applied_point_coords):
     """
@@ -173,261 +35,198 @@ def calculate_moment(point_coords, force_coords, applied_point_coords):
     moment = np.cross(r, F)
 
     return moment
+def rotate_x(theta):
+    return np.array([
+        [1, 0, 0],
+        [0, np.cos(theta), -np.sin(theta)],
+        [0, np.sin(theta), np.cos(theta)]
+    ])
+
+def rotate_y(theta):
+    return np.array([
+        [np.cos(theta), 0, np.sin(theta)],
+        [0, 1, 0],
+        [-np.sin(theta), 0, np.cos(theta)]
+    ])
+
+def rotate_z(theta):
+    return np.array([
+        [np.cos(theta), -np.sin(theta), 0],
+        [np.sin(theta), np.cos(theta), 0],
+        [0, 0, 1]
+    ])
+def transform_point(point, displacement, rotations):
     
-def remove_column(matrix, col_index):
-    # Convert to CSR format for efficient column slicing
-    matrix_csr = matrix.tocsr()
 
-    # Remove the specified column
-    new_matrix_csr = csr_matrix(np.delete(matrix_csr.toarray(), col_index, axis=1))
+    # Apply rotations
+    for rotation in rotations:
+        axis, angle = rotation[0], rotation[1]
+        if axis == 'x':
+            rotation_matrix = rotate_x(angle)
+        elif axis == 'y':
+            rotation_matrix = rotate_y(angle)
+        elif axis == 'z':
+            rotation_matrix = rotate_z(angle)
+        else:
+            raise ValueError("Invalid rotation axis. Use 'x', 'y', or 'z'.")
 
-    # Adjust the shape of the new matrix
-    new_matrix_csr.resize((matrix.shape[0], new_matrix_csr.shape[1]))
+        point = np.dot(rotation_matrix, point)
+        # Apply displacement
+    point = np.array(point) + np.array(displacement)
+    return point.tolist()
 
-    # Convert back to COO format
-    new_matrix_coo = coo_matrix(new_matrix_csr)
+def check_outward_normal(block_centroid,face_centroid,face_normal,local_ref):
 
-    return new_matrix_coo.data, new_matrix_coo.row, new_matrix_coo.col
-def calculate_triangle_area_3d(vertices):
-    """
-    Calculate the area of a triangle in 3D space given three vertices.
-    """
-    # Ensure that the input is a NumPy array
-    vertices = np.array(vertices)
-
-    # Extract coordinates
-    x = vertices[:, 0]
-    y = vertices[:, 1]
-    z = vertices[:, 2]
-
-    # Calculate the area using the cross product
-    area = 0.5 * np.linalg.norm(np.cross(vertices[1] - vertices[0], vertices[2] - vertices[0]))
-
-    return area
-def is_point_inside_triangle(alpha, beta, gamma):
-    # Check if the barycentric coordinates are within the valid range [0, 1]
-    return 0 <= alpha <= 1 and 0 <= beta <= 1 and 0 <= gamma <= 1
-
-def barycentric_coordinates(x, y, z, x1, y1, z1, x2, y2, z2, x3, y3, z3):
-    # Calculate the areas of sub-triangles
-    area_total = 0.5 * np.linalg.norm(np.cross(np.array([x2 - x1, y2 - y1, z2 - z1]),
-                                               np.array([x3 - x1, y3 - y1, z3 - z1])))
-    area1 = 0.5 * np.linalg.norm(np.cross(np.array([x - x2, y - y2, z - z2]),
-                                          np.array([x3 - x2, y3 - y2, z3 - z2])))
-    area2 = 0.5 * np.linalg.norm(np.cross(np.array([x3 - x1, y3 - y1, z3 - z1]),
-                                          np.array([x - x1, y - y1, z - z1])))
-    area3 = 0.5 * np.linalg.norm(np.cross(np.array([x2 - x1, y2 - y1, z2 - z1]),
-                                          np.array([x - x1, y - y1, z - z1])))
-    
-    # Calculate barycentric coordinates
-    alpha = area1 / area_total
-    beta = area2 / area_total
-    gamma = area3 / area_total
-
-    return alpha, beta, gamma
-def interpolate_density(point, vertices, rhos):
-    # Ensure that the input arrays are NumPy arrays
-    point = np.array(point)
-    vertices = np.array(vertices)
-    rhos = np.array(rhos)
-
-    # Check if the input arrays have the correct shapes
-    if point.shape != (3,) or vertices.shape != (3, 3) or rhos.shape != (3,):
-        raise ValueError("Input arrays must have the correct shapes")
-
-    # Calculate barycentric coordinates
-    alpha, beta, gamma = barycentric_coordinates(point[0], point[1], point[2], *vertices[:, :3].flatten())
-
-    
-    # Check if the point is inside the triangle
-    if not is_point_inside_triangle(alpha, beta, gamma):
-        raise ValueError("Point is not inside the triangle")
-
-    # Interpolate density
-    rho = alpha * rhos[0] + beta * rhos[1] + gamma * rhos[2]
-    
-    return [alpha * rhos[0]  , beta * rhos[1] , gamma * rhos[2]] 
-def integral_gauss(vertices,rhos,type, normal, x_local, y_local, block_centroid):
-    # points positions in normalized co-ordinates
-    if False:
-        s1 = 1/6
-        t1 = 1/6
-        s2 = 2/3
-        t2 = 1/6
-        s3 = 1/6
-        t3 = 2/3
-        #first gauss point
+    block_centroid = [ block_centroid[0], block_centroid[1], block_centroid[2]]
+   
+    if np.dot(face_normal, np.array(block_centroid )- np.array(face_centroid)) > 0:
+        face_normal = [-1*element for element in face_normal]
         
-        pt1 = np.array([s1*(vertices[1,0] - vertices[0,0]) + t1*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                        s1*(vertices[1,1] - vertices[0,1]) + t1*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                        , s1*(vertices[1,2] - vertices[0,2]) + t1*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
         
-        pt2 = np.array([s2*(vertices[1,0] - vertices[0,0]) + t2*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                        s2*(vertices[1,1] - vertices[0,1]) + t2*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                        , s2*(vertices[1,2] - vertices[0,2]) + t2*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
+    if face_normal[1] != 0 or face_normal[2] != 0:
+        x_local = [face_normal[1]**2 + face_normal[2]**2, -face_normal[0]*face_normal[1] , -face_normal[0]*face_normal[2] ]
+        y_local = [0, face_normal[2] , -face_normal[1] ]
+    else:
+        if face_normal[0] > 0:
+            x_local = [0,1,0]
+            y_local = [0,0,1]
+        else:
+            x_local = [0,-1,0]
+            y_local = [0,0,1]
+  
         
-        pt3 = np.array([s3*(vertices[1,0] - vertices[0,0]) + t3*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                        s3*(vertices[1,1] - vertices[0,1]) + t3*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                        , s3*(vertices[1,2] - vertices[0,2]) + t3*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
-        
-    
-        pt1_alpha, pt1_beta, pt1_gamma = interpolate_density(pt1, vertices, rhos)
-        pt2_alpha, pt2_beta, pt2_gamma = interpolate_density(pt2, vertices, rhos)
-        pt3_alpha, pt3_beta, pt3_gamma = interpolate_density(pt3, vertices, rhos)
-        #print(pt1_density,pt2_density,pt3_density)
-        
-        triangle_area = calculate_triangle_area_3d(vertices)
-        w = 1/6 #weight of each gauss vertex
-        jac = 2*triangle_area #jacobian of the transformation 
-        first_term = jac*w*(pt1_alpha + pt2_alpha + pt3_alpha)
-        second_term = jac*w*(pt1_beta + pt2_beta + pt3_beta)
-        third_term = jac*w*(pt1_gamma + pt2_gamma + pt3_gamma)
+    x_local /= np.linalg.norm(x_local)
+    y_local /= np.linalg.norm(y_local)
+
+    x_local = [round(element,4) for element in x_local ]
+    y_local = [round(element,4) for element in y_local ]
     
 
-    
-    s1 = 1/5
-    t1 = 1/5
-    
-    s2 = 3/5
-    t2 = 1/5
-    
-    s3 = 1/5
-    t3 = 3/5
+    local_ref = np.append(local_ref, np.array([[ face_ind, face_normal[0], face_normal[1],face_normal[2], \
+                                              x_local[0],x_local[1],x_local[2], y_local[0],y_local[1],y_local[2]  ]]), axis =0)
+        
+  
+    return local_ref
 
-    s4 = 1/3
-    t4 = 1/3
+def find_element_in_matrix(matrix, element):
+    for i, row in enumerate(matrix):
+        if element in row:
+            return i  # Return the index of the row where the element is found
+    return -1  # Return -1 if the element is not found in any row
+
+def stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num,all_triangles,Ntriangles_num,stat_sol):
+    FILE_PATH = "C:\\Users\\mmoussa\\Desktop\\rhino_test\\stat_stress"
+    print("Running unstructured...")
+    
+    normal_load = [ round(stat_sol[ind+2],2)   for ind in range(0,len(stat_sol[0:-1:]),3) ]
+    shear_loadx = [ round(stat_sol[ind],2)   for ind in range(0,len(stat_sol[0:-1:]),3) ]
+    shear_loady = [ round(stat_sol[ind+1],2)   for ind in range(0,len(stat_sol[0:-1:]),3) ]
+    
+    
+    
+    all_unique_points = np.array(all_unique_points)
+
+    # Define vertices
+    x = [float(element) for element in all_unique_points[:, 0]]
+    y = [float(element) for element in all_unique_points[:, 1]]
+    z = [float(element) for element in all_unique_points[:, 2]]
 
     
-    
-    #first gauss point
-    
-    pt1 = np.array([s1*(vertices[1,0] - vertices[0,0]) + t1*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                    s1*(vertices[1,1] - vertices[0,1]) + t1*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                    , s1*(vertices[1,2] - vertices[0,2]) + t1*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
-    
-    pt2 = np.array([s2*(vertices[1,0] - vertices[0,0]) + t2*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                    s2*(vertices[1,1] - vertices[0,1]) + t2*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                    , s2*(vertices[1,2] - vertices[0,2]) + t2*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
-    
-    pt3 = np.array([s3*(vertices[1,0] - vertices[0,0]) + t3*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                    s3*(vertices[1,1] - vertices[0,1]) + t3*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                    , s3*(vertices[1,2] - vertices[0,2]) + t3*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
-    
-    pt4 = np.array([s4*(vertices[1,0] - vertices[0,0]) + t4*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                    s4*(vertices[1,1] - vertices[0,1]) + t4*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                    , s4*(vertices[1,2] - vertices[0,2]) + t4*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
+    x = np.array(x, dtype = np.float64)
+    y = np.array(y,dtype = np.float64)
+    z = np.array(z,dtype = np.float64)
     
 
-    pt1_alpha, pt1_beta, pt1_gamma = interpolate_density(pt1, vertices, rhos)
-    pt2_alpha, pt2_beta, pt2_gamma = interpolate_density(pt2, vertices, rhos)
-    pt3_alpha, pt3_beta, pt3_gamma = interpolate_density(pt3, vertices, rhos)
-    pt4_alpha, pt4_beta, pt4_gamma = interpolate_density(pt4, vertices, rhos)
-    #print(pt1_density,pt2_density,pt3_density)
+    # Define connectivity or vertices that belong to each element
+    conn = np.zeros(3*triangles_num, dtype = np.int32)
+    # Define offset of the last vertex of each element
+    offset = np.zeros(triangles_num , dtype = np.int32)
+    # Define cell types
+    ctype = np.zeros(triangles_num)
+   
     
-    triangle_area = calculate_triangle_area_3d(vertices)
-    
-    w = 25/(24*4) #weight of each gauss vertex
-    w1 = -27/(24*4)
-    
-    jac = 2*triangle_area #jacobian of the transformation 
-    
-    first_term = jac*w*(pt1_alpha + pt2_alpha + pt3_alpha) + jac*w1*pt4_alpha
-    second_term = jac*w*(pt1_beta + pt2_beta + pt3_beta)+ jac*w1*pt4_beta
-    third_term = jac*w*(pt1_gamma + pt2_gamma + pt3_gamma) + jac*w1*pt4_gamma
-    #int_result = jac*w*(pt1_density + pt2_density + pt3_density)
-    load_terms = [first_term, second_term , third_term  ]
-    moment_terms=[]
-    if type:
-        s1 = 1/6
-        t1 = 1/6
-        s2 = 2/3
-        t2 = 1/6
-        s3 = 1/6
-        t3 = 2/3
-        #first gauss point
+    tri_ind = 0
+ 
+    for face_triangles in all_triangles:
+      
+        for triangle in face_triangles:
         
-        pt1 = np.array([s1*(vertices[1,0] - vertices[0,0]) + t1*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                        s1*(vertices[1,1] - vertices[0,1]) + t1*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                        , s1*(vertices[1,2] - vertices[0,2]) + t1*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
+            conn[3*tri_ind], conn[3*tri_ind + 1], conn[3*tri_ind +2] = int(triangle[0]-1), int(triangle[1]-1), int(triangle[2]-1)  # first triangle
+            offset[tri_ind] = 3*tri_ind +3
+            ctype[tri_ind] = VtkTriangle.tid
+            tri_ind += 1
+
+    
+    #cd = np.random.rand(2)
+    cellData = {"pressure": []}
+
+    # Define displacement components
+    normal_stress = np.array(normal_load)
+    shear_stress1 = np.array(shear_loadx)
+    shear_stress2 = np.array(shear_loady)
+    
+
+    # Combine displacement components into separate arrays
+    pointData = {"normal_stress":normal_stress, "shear_stress1": shear_stress1, "shear_stress2": shear_stress2  }
+
+  
+    
+    # Add combined displacement to pointData
+    #pointData["displacement"] = displacement
+    
+    unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
+    
+    
+    FILE_PATH = "C:\\Users\\mmoussa\\Desktop\\rhino_test\\stat_body"
+    
+    
+  
+    # Define vertices
+    
+    
+    noc_triangles_coor = np.array(noc_triangles_coor)
+
+    # Define vertices
+    x = [float(element) for element in noc_triangles_coor[:, 0]]
+    y = [float(element) for element in noc_triangles_coor[:, 1]]
+    z = [float(element) for element in noc_triangles_coor[:, 2]]
+
+   
+    x = np.array(x, dtype = np.float64)
+    y = np.array(y,dtype = np.float64)
+    z = np.array(z,dtype = np.float64)
+    
+
+    # Define connectivity or vertices that belong to each element
+    conn = np.zeros(3*Ntriangles_num, dtype = np.int32)
+    # Define offset of the last vertex of each element
+    offset = np.zeros(Ntriangles_num , dtype = np.int32)
+    # Define cell types
+    ctype = np.zeros(Ntriangles_num)
+   
+    
+    tri_ind = 0
+ 
+    for face_triangles in noc_triangles:
+      
+        for triangle in face_triangles:
         
-        pt2 = np.array([s2*(vertices[1,0] - vertices[0,0]) + t2*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                        s2*(vertices[1,1] - vertices[0,1]) + t2*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                        , s2*(vertices[1,2] - vertices[0,2]) + t2*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
-        
-        pt3 = np.array([s3*(vertices[1,0] - vertices[0,0]) + t3*(vertices[2,0] - vertices[0,0])+  vertices[0,0] , \
-                        s3*(vertices[1,1] - vertices[0,1]) + t3*(vertices[2,1] - vertices[0,1])+  vertices[0,1] \
-                        , s3*(vertices[1,2] - vertices[0,2]) + t3*(vertices[2,2] - vertices[0,2])+  vertices[0,2]])
-        
-        pt1_x_moment =  calculate_moment(block_centroid, x_local, pt1)
-        pt1_y_moment =  calculate_moment(block_centroid, y_local, pt1)
-        pt1_z_moment =  calculate_moment(block_centroid, normal, pt1)
+            conn[3*tri_ind], conn[3*tri_ind + 1], conn[3*tri_ind +2] = int(triangle[0]-1), int(triangle[1]-1), int(triangle[2]-1)  # first triangle
+            offset[tri_ind] = 3*tri_ind +3
+            ctype[tri_ind] = VtkTriangle.tid
+            tri_ind += 1
     
-        pt2_x_moment =  calculate_moment(block_centroid, x_local, pt2)
-        pt2_y_moment =  calculate_moment(block_centroid, y_local, pt2)
-        pt2_z_moment =  calculate_moment(block_centroid, normal, pt2)
-    
-        pt3_x_moment =  calculate_moment(block_centroid, x_local, pt3)
-        pt3_y_moment =  calculate_moment(block_centroid, y_local, pt3)
-        pt3_z_moment =  calculate_moment(block_centroid, normal, pt3)
-    
-        
-        pt1_alpha, pt1_beta, pt1_gamma = interpolate_density(pt1, vertices, rhos)
-        pt2_alpha, pt2_beta, pt2_gamma = interpolate_density(pt2, vertices, rhos)
-        pt3_alpha, pt3_beta, pt3_gamma = interpolate_density(pt3, vertices, rhos)
-        #print(pt1_density,pt2_density,pt3_density)
-        
-        triangle_area = calculate_triangle_area_3d(vertices)
-        w = 1/6 #weight of each gauss vertex
-        jac = 2*triangle_area #jacobian of the transformation 
-    
-    
-        
-        node1_x_x = jac*w*(pt1_alpha*pt1_x_moment[0] + pt2_alpha*pt2_x_moment[0] + pt3_alpha*pt3_x_moment[0])
-        node1_x_y = jac*w*(pt1_alpha*pt1_x_moment[1] + pt2_alpha*pt2_x_moment[1] + pt3_alpha*pt3_x_moment[1])
-        node1_x_z = jac*w*(pt1_alpha*pt1_x_moment[2] + pt2_alpha*pt2_x_moment[2] + pt3_alpha*pt3_x_moment[2])
-    
-        node1_y_x = jac*w*(pt1_alpha*pt1_y_moment[0] + pt2_alpha*pt2_y_moment[0] + pt3_alpha*pt3_y_moment[0])
-        node1_y_y = jac*w*(pt1_alpha*pt1_y_moment[1] + pt2_alpha*pt2_y_moment[1] + pt3_alpha*pt3_y_moment[1])
-        node1_y_z = jac*w*(pt1_alpha*pt1_y_moment[2] + pt2_alpha*pt2_y_moment[2] + pt3_alpha*pt3_y_moment[2])
-    
-        node1_z_x = jac*w*(pt1_alpha*pt1_z_moment[0] + pt2_alpha*pt2_z_moment[0] + pt3_alpha*pt3_z_moment[0])
-        node1_z_y = jac*w*(pt1_alpha*pt1_z_moment[1] + pt2_alpha*pt2_z_moment[1] + pt3_alpha*pt3_z_moment[1])
-        node1_z_z = jac*w*(pt1_alpha*pt1_z_moment[2] + pt2_alpha*pt2_z_moment[2] + pt3_alpha*pt3_z_moment[2])
-    
-    
-        
-        node2_x_x = jac*w*(pt1_beta*pt1_x_moment[0] + pt2_beta*pt2_x_moment[0] + pt3_beta*pt3_x_moment[0])
-        node2_x_y = jac*w*(pt1_beta*pt1_x_moment[1] + pt2_beta*pt2_x_moment[1] + pt3_beta*pt3_x_moment[1])
-        node2_x_z = jac*w*(pt1_beta*pt1_x_moment[2] + pt2_beta*pt2_x_moment[2] + pt3_beta*pt3_x_moment[2])
-    
-        node2_y_x = jac*w*(pt1_beta*pt1_y_moment[0] + pt2_beta*pt2_y_moment[0] + pt3_beta*pt3_y_moment[0])
-        node2_y_y = jac*w*(pt1_beta*pt1_y_moment[1] + pt2_beta*pt2_y_moment[1] + pt3_beta*pt3_y_moment[1])
-        node2_y_z = jac*w*(pt1_beta*pt1_y_moment[2] + pt2_beta*pt2_y_moment[2] + pt3_beta*pt3_y_moment[2])
-    
-        node2_z_x = jac*w*(pt1_beta*pt1_z_moment[0] + pt2_beta*pt2_z_moment[0] + pt3_beta*pt3_z_moment[0])
-        node2_z_y = jac*w*(pt1_beta*pt1_z_moment[1] + pt2_beta*pt2_z_moment[1] + pt3_beta*pt3_z_moment[1])
-        node2_z_z = jac*w*(pt1_beta*pt1_z_moment[2] + pt2_beta*pt2_z_moment[2] + pt3_beta*pt3_z_moment[2])
-    
-    
-    
-        node3_x_x = jac*w*(pt1_gamma*pt1_x_moment[0] + pt2_gamma*pt2_x_moment[0] + pt3_gamma*pt3_x_moment[0])
-        node3_x_y = jac*w*(pt1_gamma*pt1_x_moment[1] + pt2_gamma*pt2_x_moment[1] + pt3_gamma*pt3_x_moment[1])
-        node3_x_z = jac*w*(pt1_gamma*pt1_x_moment[2] + pt2_gamma*pt2_x_moment[2] + pt3_gamma*pt3_x_moment[2])
-    
-        node3_y_x = jac*w*(pt1_gamma*pt1_y_moment[0] + pt2_gamma*pt2_y_moment[0] + pt3_gamma*pt3_y_moment[0])
-        node3_y_y = jac*w*(pt1_gamma*pt1_y_moment[1] + pt2_gamma*pt2_y_moment[1] + pt3_gamma*pt3_y_moment[1])
-        node3_y_z = jac*w*(pt1_gamma*pt1_y_moment[2] + pt2_gamma*pt2_y_moment[2] + pt3_gamma*pt3_y_moment[2])
-    
-        node3_z_x = jac*w*(pt1_gamma*pt1_z_moment[0] + pt2_gamma*pt2_z_moment[0] + pt3_gamma*pt3_z_moment[0])
-        node3_z_y = jac*w*(pt1_gamma*pt1_z_moment[1] + pt2_gamma*pt2_z_moment[1] + pt3_gamma*pt3_z_moment[1])
-        node3_z_z = jac*w*(pt1_gamma*pt1_z_moment[2] + pt2_gamma*pt2_z_moment[2] + pt3_gamma*pt3_z_moment[2])
-            
-            
-        moment_terms =  [[node1_x_x, node1_y_x, node1_z_x, node1_x_y,  node1_y_y, node1_z_y, node1_x_z,  node1_y_z, node1_z_z ]]
-        moment_terms.append([node2_x_x, node2_y_x, node2_z_x, node2_x_y,  node2_y_y, node2_z_y, node2_x_z,  node2_y_z, node2_z_z ])
-        moment_terms.append([node3_x_x, node3_y_x, node3_z_x, node3_x_y,  node3_y_y, node3_z_y, node3_x_z,  node3_y_z, node3_z_z ])
-        
-    return load_terms, moment_terms 
+    pointData = {'d': np.ones(x.shape[0])}
+
+    unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
+
+
+def streamprinter(text):
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+
+
 def block_disp_plot(manifold_data,blocks,faces,points,ub):
     ub = [ 1*element for element in ub ]
  
@@ -521,18 +320,9 @@ def block_disp_plot(manifold_data,blocks,faces,points,ub):
                     flatshading=True,
                     alphahull=-1   )  )
             
-           
-                   
-    # Update layout again if needed
-            # fig.update_layout(scene=dict(...))
-            
-    # Show the updated figure
-    # Update axis ranges for better visibility
-    # Update axis ranges for better visibility
+    
     points = new_points
-    
-    
-    
+   
     point = np.array([[float(element) for element in row] for row in points])
     max_coor = np.max( point,axis = 0 )
     min_coor = np.min( point,axis = 0 )
@@ -570,45 +360,6 @@ def block_disp_plot(manifold_data,blocks,faces,points,ub):
 
     unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
 
-def rotate_x(theta):
-    return np.array([
-        [1, 0, 0],
-        [0, np.cos(theta), -np.sin(theta)],
-        [0, np.sin(theta), np.cos(theta)]
-    ])
-
-def rotate_y(theta):
-    return np.array([
-        [np.cos(theta), 0, np.sin(theta)],
-        [0, 1, 0],
-        [-np.sin(theta), 0, np.cos(theta)]
-    ])
-
-def rotate_z(theta):
-    return np.array([
-        [np.cos(theta), -np.sin(theta), 0],
-        [np.sin(theta), np.cos(theta), 0],
-        [0, 0, 1]
-    ])
-def transform_point(point, displacement, rotations):
-    
-
-    # Apply rotations
-    for rotation in rotations:
-        axis, angle = rotation[0], rotation[1]
-        if axis == 'x':
-            rotation_matrix = rotate_x(angle)
-        elif axis == 'y':
-            rotation_matrix = rotate_y(angle)
-        elif axis == 'z':
-            rotation_matrix = rotate_z(angle)
-        else:
-            raise ValueError("Invalid rotation axis. Use 'x', 'y', or 'z'.")
-
-        point = np.dot(rotation_matrix, point)
-        # Apply displacement
-    point = np.array(point) + np.array(displacement)
-    return point.tolist()
 
 def blocks_plot(face_points,fig):
     
@@ -640,39 +391,6 @@ def blocks_plot(face_points,fig):
                    
     return fig
 
-def check_outward_normal(block_centroid,face_centroid,face_normal,local_ref):
-
-    block_centroid = [ block_centroid[0], block_centroid[1], block_centroid[2]]
-   
-    if np.dot(face_normal, np.array(block_centroid )- np.array(face_centroid)) > 0:
-        face_normal = [-1*element for element in face_normal]
-        
-        
-    if face_normal[1] != 0 or face_normal[2] != 0:
-        x_local = [face_normal[1]**2 + face_normal[2]**2, -face_normal[0]*face_normal[1] , -face_normal[0]*face_normal[2] ]
-        y_local = [0, face_normal[2] , -face_normal[1] ]
-    else:
-        if face_normal[0] > 0:
-            x_local = [0,1,0]
-            y_local = [0,0,1]
-        else:
-            x_local = [0,-1,0]
-            y_local = [0,0,1]
-  
-        
-    x_local /= np.linalg.norm(x_local)
-    y_local /= np.linalg.norm(y_local)
-
-    x_local = [round(element,4) for element in x_local ]
-    y_local = [round(element,4) for element in y_local ]
-    
-
-    local_ref = np.append(local_ref, np.array([[ -1, face_normal[0], face_normal[1],face_normal[2], \
-                                              x_local[0],x_local[1],x_local[2], y_local[0],y_local[1],y_local[2]  ]]), axis =0)
-        
-  
-    return local_ref
-
 # Reload the RhinoScriptSyntax module
 importlib.reload(rs)
 objs = rs.AllObjects()
@@ -688,7 +406,7 @@ faces = np.empty((0,3))
 blocks_centroid = np.empty((0,4))
 blocks_volume = np.empty((0,2))
 blocks_att = []
-contacts_ind = []
+
 unsorted_faces_rep = []
 plans_data = np.empty((0,4))
 plan_ind = 1
@@ -698,9 +416,18 @@ local_ref = np.empty((0,10))
 blocks_brep = [] 
 bars = []
 supports_type = [] 
+
+contacts_ind = []
 contacts_nodes = []
 contacts_FE = [0]
+
+faces_ind = []
+faces_nodes = []
+faces_FE = [0]
+
+phi_type = []
 coh_type = []
+lc_type = []
 for obj in objs:
     obj_type = rs.ObjectType(obj)
     if obj_type == 4:
@@ -709,11 +436,12 @@ for obj in objs:
     if obj_type == 8: # Check if the object is a surface
       
         points = rs.SurfacePoints(obj)
-        
+     
+
         for i, point in enumerate(points):
-            
+            print(point)
             plans_data = np.append(plans_data, np.array([[ plan_ind, np.round(point[0],5) , np.round( point[1],5), np.round(point[2],5) ]]), axis = 0)
-        #plans_data = 
+        
         plan_ind += 1
         att_lcase = [item.lower() for item in  rs.GetUserText(obj)]
        
@@ -722,8 +450,11 @@ for obj in objs:
             index = att_lcase.index('type')
             if rs.GetUserText(obj, rs.GetUserText(obj)[index]) == '3':
                 supports_type.append(3)
-            else:
+            elif rs.GetUserText(obj, rs.GetUserText(obj)[index]) == '2':
                 supports_type.append(2)
+        else:
+            supports_type.append(-1)
+
         
         if 'c' in att_lcase:
             index = att_lcase.index('c')
@@ -731,6 +462,20 @@ for obj in objs:
             
         else:
             coh_type.append(-1)
+        
+        if 'phi' in att_lcase:
+            index = att_lcase.index('phi')
+            phi_type.append(float(rs.GetUserText(obj, rs.GetUserText(obj)[index])))
+            
+        else:
+            phi_type.append(-1)
+        
+        if 'lc' in att_lcase:
+            index = att_lcase.index('lc')
+            lc_type.append(float(rs.GetUserText(obj, rs.GetUserText(obj)[index])))
+            
+        else:
+            lc_type.append(-1)
             
 
    
@@ -761,7 +506,7 @@ for obj in objs:
                   
                     # Print the coordinates of each control point
                     face_pts = np.append(face_pts, np.array([[ np.round(point[0],5), np.round(point[1],5), np.round(point[2],5) ]]), axis = 0)
-                    print("faces", face_pts)
+                 
               
                 
                 b_centroid = rs.SurfaceVolumeCentroid(obj)[0]
@@ -807,9 +552,15 @@ for obj in objs:
                     faces_rep.append(face_rep)
                     f_points.append(face_pts)
                     unsorted_faces_rep.append(unsorted_face_rep)
+
+                    faces_ind += [faces_rep.index(face_rep) + 1 ]
+                    faces_nodes += added_positions
+                    faces_FE.append(faces_FE[-1:][0] + len(added_positions))
+
+
                     local_ref = check_outward_normal(b_centroid,face_centroid,face_normal,local_ref)
                     local_ref[-1:, 0] = len(faces_rep)
-                    print("localll", local_ref)
+                
                     block_name = -99
                     blocks = np.append(blocks, np.array([[block_ind, len(faces_rep), block_name, face_ind  , 0,-1, 11 ]]), axis = 0)
                     for ind in added_positions:
@@ -817,8 +568,7 @@ for obj in objs:
                 else:
                     contacts_ind += [faces_rep.index(face_rep) + 1 ]
                     contacts_nodes += added_positions
-                    print("added", )
-                    print( contacts_FE[-1:][0] +  len(added_positions))
+                  
                     contacts_FE.append(contacts_FE[-1:][0] + len(added_positions))
 
                     block_name = -99
@@ -875,6 +625,7 @@ indices_column = (np.arange(num_rows) + 1).reshape(-1, 1)
 points = np.hstack((indices_column, pts_coor))
 
 plans_rep = []
+supports_ind = []
 
 if plans_data.shape[0] != 0:
     for ind in range(plan_ind-1):
@@ -885,6 +636,7 @@ if plans_data.shape[0] != 0:
         for  element in plan_elements:
             pt_coor = element[-3:]
             pt_ind = np.where( np.all(points[:,-3:] == pt_coor, axis=1)  )[0]
+            print(pt_ind)
             plan_pts.extend(pt_ind)
         
         sorted_plan_pts = sorted(set(plan_pts))
@@ -897,11 +649,13 @@ if plans_data.shape[0] != 0:
     
 for ind in contacts_ind:    blocks[np.where(blocks[:,1] == ind)[0], 4] = 1
 
-supports_ind = set(plans_rep) &  set(faces_rep)
+print("hereee",contacts_ind)
+print(supports_type)
+
+supports_rep = set(plans_rep) &  set(faces_rep)
+print(supports_type)
 print(plans_rep)
-print(f_points)
-print(blocks)
-for ind in supports_ind :
+for ind in supports_rep :
     if supports_type[plans_rep.index(ind)] == 2:
         
         blocks[np.where(blocks[:,1] == faces_rep.index(ind) +1)[0] , 4] = 2
@@ -910,7 +664,7 @@ for ind in supports_ind :
         
         
         unsorted_rep = unsorted_faces_rep[faces_rep.index(ind)] 
-        print(unsorted_rep)
+      
         nodes_ind = [int(num) for num in unsorted_rep.split('#')]
         
         contacts_nodes += nodes_ind
@@ -918,6 +672,8 @@ for ind in supports_ind :
         contacts_FE += [ contacts_FE[-1:][0] + len(nodes_ind)]
     
     if supports_type[plans_rep.index(ind)] == 3:
+
+        supports_ind += [faces_rep.index(ind) +1]
         blocks[np.where(blocks[:,1] == faces_rep.index(ind) +1)[0] , 4 ] = 3
 
         contacts_ind += [faces_rep.index(ind) +1]
@@ -932,8 +688,19 @@ for ind in supports_ind :
     if coh_type[plans_rep.index(ind)] != -1:
         blocks[np.where(blocks[:,1] == faces_rep.index(ind) +1)[0] , 5 ] = float(coh_type[plans_rep.index(ind)])
 
+print("hereee",contacts_ind)
 # Select the curve(s) you want to split
 #curve_ids = rs.GetObjects("Select curve(s) to split", rs.filter.curve)
+
+contacts_ind_sorted = sorted(contacts_ind)
+
+
+supports_pos = []
+for ind in supports_ind:
+    supports_pos += [contacts_ind_sorted.index(ind)]
+
+
+
 curve_ids = bars
 
 if not curve_ids:
@@ -1019,44 +786,103 @@ if True:
 
     rs.EnableRedraw(True)
 
-print(contacts_ind) 
-      
-print(contacts_nodes)
 
-print(contacts_FE) 
 
-print(faces)
 
-Faces_nodes = np.array([1,2,3,4,    9,10,11,12])
-Faces_FE = np.array([0,4,8 ])
-active_faces = np.array([1])
+
+
+lc = 1
+
+lc_faces_val = lc*np.ones((len(contacts_ind)), dtype = np.float64)
+print(len(contacts_ind))
+
+for ind, lc_face  in enumerate(lc_type):
+    if lc_face != -1:
+        print(plans_rep)
+        face_ind = faces_rep.index( plans_rep[ind] )
+        contact_ind = contacts_ind.index(face_ind + 1)
+        print(contact_ind)
+        lc_faces_val[contact_ind] = float(lc_face)
+
+
 
 contacts_ind = np.array(contacts_ind, dtype = np.int32)
 contacts_nodes = np.array(contacts_nodes, dtype = np.int32)
 contacts_FE = np.array(contacts_FE, dtype = np.int32)
 
-print(contacts_ind)
 
-print(np.array(blocks, dtype = np.float64))
-print(np.array(points[:, 1:4 ], dtype = np.float64))
-print(contacts_FE)
-print(contacts_nodes)
-print(np.array(blocks_centroid, dtype = np.float64))
-print(np.array(local_ref,dtype = np.float64))
+contacts_ind = np.array(contacts_ind, dtype = np.int32)
+faces_nodes = np.array(faces_nodes, dtype = np.int32)
+faces_FE = np.array(faces_FE, dtype = np.int32)
 
-output = mesh.print_hello_pyth( contacts_ind,  np.array(blocks, dtype = np.float64) , np.array(points[:, 1:4 ], dtype = np.float64),  contacts_FE, contacts_nodes, np.array(blocks_centroid, dtype = np.float64) , \
-                        np.array(local_ref,dtype = np.float64), 0.1 )
+print("lccccccccccc", lc_faces_val)
 
 
 
+output = mesh.print_hello_pyth( contacts_ind,  np.array(blocks, dtype = np.float64) , np.array(points[:, 1:4 ], dtype = np.float64),  faces_FE, faces_nodes, np.array(blocks_centroid, dtype = np.float64) , \
+                       np.array(local_ref,dtype = np.float64), lc_faces_val )
 
 
-print(points)
-print(faces_rep)
+
+
+supports_nodes = set()
+
+print("lennnnnnnnn", len(output[4]))
+for pos in supports_pos:
+    for tri in output[4][pos]:
+            supports_nodes.update({ tri[0], tri[1], tri[2] } )
+
+supports_nodes = list(supports_nodes)
+
+all_coh_nodes = set()
+all_coh_val = []
+
+
+for ind, coh in enumerate(coh_type):
+    if coh != -1:
+        print(faces_rep)
+        faces_pos = faces_rep.index( plans_rep[ind] )
+        contact_pos = contacts_ind_sorted.index( faces_pos + 1 )
+
+        contact_nodes = set()
+        for tri in output[4][contact_pos]:
+            contact_nodes.update( {tri[0], tri[1], tri[2] })
+        
+        all_coh_nodes.update(contact_nodes) 
+        all_coh_val += [coh for i in range(len(contact_nodes))] 
+
+
+all_coh_nodes = list(all_coh_nodes)
+
+
+
+all_phi_nodes = set()
+all_phi_val = []
+
+
+for ind, phi in enumerate(phi_type):
+    if phi != -1:
+        
+        faces_pos = faces_rep.index( plans_rep[ind] )
+        contact_pos = contacts_ind_sorted.index( faces_pos + 1 )
+
+        contact_nodes = set()
+        for tri in output[4][contact_pos]:
+            contact_nodes.update( {tri[0], tri[1], tri[2] })
+        
+        all_phi_nodes.update(contact_nodes) 
+        all_phi_val += [phi for i in range(len(contact_nodes))] 
+
+
+all_phi_nodes = list(all_phi_nodes)
+
+print(all_phi_nodes)
+print(all_phi_val)
+
 bars_data = np.unique(bars_data,axis = 0)
 #old part 
-print(f_points)
-print(len(f_points))
+print("typeeee",phi_type)
+
 def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att):
     kc = 0
     all_mesh_points = np.empty((0,6))
@@ -1075,8 +901,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     equilibrium_matrix_col = []
 
     all_supports_ind = []
-    all_coh_ind = []
-    all_coh_val = []
+   
     faces_ind_read = []
     equilibrium_matrix = []
     fig = go.Figure()
@@ -1088,14 +913,6 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     from scipy.linalg import block_diag
 
 
-    fig.update_layout(scene=dict(xaxis=dict(range=[-20, 20]),
-                            yaxis=dict(range=[-20, 20]),
-                            zaxis=dict(range=[-20, 20])))
-    fig.show()
-    areas = equilibrium_matrix   
-    # Save the figure as an HTML file
-    fig.write_html("C:/Users/mmoussa/Desktop/rhino_test/figure_mesh.html")
-        
     
     if False:
         #PORTIOLLI PART
@@ -1230,25 +1047,14 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     
     nb = int((max(equilibrium_matrix_row) + 1)/6)
     
-    # Define the matrix to be repeated (mohr coulomb)
-    block_matrix = np.array([[0, 0, 0.8], [-1, 0, 0], [0, -1, 0], [0, 0, 0]])
+
     
     # Specify the number of repetitions
     n = all_mesh_points.shape[0]
     
-    # Create the block matrix with repeated blocks on the diagonal
-    
-    #criteria_matrix = block_diag(*([block_matrix] * n))
-
-    
-    #sparse_matrix = csr_matrix(criteria_matrix)
-        
-    # Get the non-zero elements and their indices
-    #MCoul_elements = sparse_matrix.data
-    
-    #MCoul_row_indices, MCoul_col_indices = sparse_matrix.nonzero()
-
-    #equilibrium_matrix.insert(50, -1)
+    equilibrium_matrix_row = output[1]
+    equilibrium_matrix_col = output[2]
+    equilibrium_matrix = output[0]
     
    
     
@@ -1259,11 +1065,15 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     
     #equilibrium_matrix_col.insert(50,3*n)
     
+    print(len(equilibrium_matrix_row))
+
     # Print the result
     live_load = [0]*6*nb
 
     #B_attributes = blocks_attributes(file)
     n = int((max(equilibrium_matrix_col)+1)/3)
+    
+
     if True:
         for block_attributes in blocks_att:
             for ind in range(1,len(block_attributes),2):
@@ -1271,13 +1081,16 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
               
                 
                 val = block_attributes[ind+1]
-           
-                first_ind = equilibrium_matrix_row.index( (block_attributes[0])*6 - 6 + key - 1 )
+
+                
+
+                #first_ind = equilibrium_matrix_row.index( (block_attributes[0])*6 - 6 + key - 1 )
+                
                 live_load[(block_attributes[0])*6 - 6 + key - 1] =  float(val)
                 
-                equilibrium_matrix.insert(first_ind, float(val))
-                equilibrium_matrix_row.insert(first_ind,  (block_attributes[0])*6 - 6 + key - 1  )
-                equilibrium_matrix_col.insert(first_ind,3*n)
+                equilibrium_matrix.append( float(val))
+                equilibrium_matrix_row.append(  (block_attributes[0])*6 - 6 + key - 1  )
+                equilibrium_matrix_col.append(3*n)
     
     
     
@@ -1309,206 +1122,29 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
 
 
 
-    #relation between nodes reactions
-    print("yessssssssssssssssssssssssss")
-    start = time.time()
-    # Find unique rows and their counts
     
-    unique_rows, counts = np.unique(all_mesh_points[:,0:3], axis=0, return_counts=True)
-    contact_eq_element_x = []
-    contact_eq_row_x = []
-    contact_eq_col_x = []
 
-    contact_eq_element_y = []
-    contact_eq_row_y = []
-    contact_eq_col_y = []
-
-    contact_eq_element_z = []
-    contact_eq_row_z = []
-    contact_eq_col_z = []
-
-    eq_dense = sparse_to_dense((equilibrium_matrix, equilibrium_matrix_row,equilibrium_matrix_col))
-    
-    col_indices_remove = []
-    nodes_indices_remove = []
-    # Iterate through unique rows and their counts
-    i = 0
-    for row, count in zip(unique_rows, counts):
-        indices_row = np.where(np.all(all_mesh_points[:,0:3] == row, axis=1))[0]
-        all_face_ind_old = all_mesh_points[indices_row,4]
-       
-        all_face_ind_old = np.unique(all_face_ind_old)
-        
-                     
-        
-        for face_ind in all_face_ind_old:
-            #print(face_ind)
-            # Find the row indices where the value in the fourth column meets the condition
-            indices = [index for index in indices_row if all_mesh_points[index, 4] == face_ind]
-            
-            #indices = np.where(all_mesh_points[indices_row,4] == face_ind)[0] 
-           
-            if len(indices) > 1:
-                ind = indices[0]
-                face1_ind_new = all_mesh_points[ind,4]
-                face1_ind_old = all_mesh_points[ind,5]
-              
-                local_ref_point1 = local_ref[np.where( local_ref[:,0] == int(face1_ind_old))][0]
-                
-                x_local1 = [ float(local_ref_point1[4]),  float(local_ref_point1[5]), float(local_ref_point1[6])]
-                y_local1 = [ float(local_ref_point1[7]),  float(local_ref_point1[8]), float(local_ref_point1[9])]
-                z_local1 = [ float(local_ref_point1[1]),  float(local_ref_point1[2]), float(local_ref_point1[3])]
-
-                #print("locall",x_local1,y_local1,z_local1)
-                ind = indices[1]
-                
-                face2_ind_new = all_mesh_points[ind,4]
-                face2_ind_old = all_mesh_points[ind,5]
-                
-                local_ref_point2 = local_ref[np.where( local_ref[:,0] == int(face2_ind_old))][0]
-
-                
-
-                x_local2 = [ float(local_ref_point2[4]),  float(local_ref_point2[5]), float(local_ref_point2[6])]
-                y_local2 = [ float(local_ref_point2[7]),  float(local_ref_point2[8]), float(local_ref_point2[9])]
-                z_local2 = [ float(local_ref_point2[1]),  float(local_ref_point2[2]), float(local_ref_point2[3])]
-
-
-                #print(x_local2,y_local2,z_local2)
-                coef1 = vector_coefficients(x_local2, np.array([x_local1,y_local1]) )
-                
-                
-                coef2 = vector_coefficients(y_local2, np.array([x_local1,y_local1]) )              
-                col_indices_remove.extend([ 3*int(indices[1]), 3*int(indices[1]) +1, 3*int(indices[1]) +2]) #to put back for non repetition
-                
-                nodes_indices_remove.append(int(indices[1])) #to put back for non repetition
-                
-                
-                ind_remove = 3*int(indices[1])
-                
-                
-
-                eq_dense[:,3*indices[0]] = [ eq_dense[i,3*indices[0]] - eq_dense[i,3*indices[1]]*coef1[0] - eq_dense[i,3*indices[1] + 1]*coef2[0] for i in range(eq_dense.shape[0])]
-                eq_dense[:,3*indices[0] +1 ] = [ eq_dense[i,3*indices[0] +1 ] - eq_dense[i,3*indices[1]]*coef1[1] - eq_dense[i,3*indices[1] + 1]*coef2[1] for i in range(eq_dense.shape[0])]
-                eq_dense[:,3*indices[0] +2 ] = [ eq_dense[i,3*indices[0] +2 ] + eq_dense[i,3*indices[1] + 2 ] for i in range(eq_dense.shape[0])]
-                #rows_remove = [element in element in range(len(equilibrium_matrix)) if equilibrium_matrix_col == ind_remove ] to put back for non repeating
-                
-                
-                #remove_column(matrix, col_index) 
-
-                
-                for ind in indices:
-                    face_ind_new = all_mesh_points[ind,4]
-                    face_ind_old = all_mesh_points[ind,5]
-                 
-                    local_ref_point = local_ref[np.where( local_ref[:,0] == int(face_ind_old))][0]
-                    
-                    x_comp = [ float(local_ref_point[4]),  float(local_ref_point[7]), float(local_ref_point[1])]
-                    
-                    nonzero_indices = [element for element, value in enumerate(x_comp) if value != 0]
-                    
-                    contact_eq_element_x +=  [x_comp[element] for element in nonzero_indices]
-                    contact_eq_row_x += [i for element in nonzero_indices]
-                    contact_eq_col_x += [3*int(ind) + element  for element in nonzero_indices]
-                    
-    
-                    y_comp = [ float(local_ref_point[5]),  float(local_ref_point[8]), float(local_ref_point[2])]
-                    
-                    nonzero_indices = [element for element, value in enumerate(y_comp) if value != 0]
-                    
-                    contact_eq_element_y +=  [y_comp[element] for element in nonzero_indices]
-                    contact_eq_row_y += [i for element in nonzero_indices]
-                    contact_eq_col_y += [3*int(ind) + element  for element in nonzero_indices]
-                  
-    
-                    z_comp = [ float(local_ref_point[6]),  float(local_ref_point[9]), float(local_ref_point[3])]
-                    
-                    nonzero_indices = [element for element, value in enumerate(z_comp) if value != 0]
-                    
-                    contact_eq_element_z +=  [z_comp[element] for element in nonzero_indices]
-                    contact_eq_row_z += [i for element in nonzero_indices]
-                    contact_eq_col_z += [3*int(ind) + element  for element in nonzero_indices]
-                     
-                i += 1
-    end = time.time()
-    print("yessssssssssssssssssssssssss", end - start)
-    #remove unexisting elements in all coh ind 
-    def remove_lines_with_subset_elements(matrix, elements_to_remove):
-        # Initialize an empty list to store the filtered lines
-        filtered_matrix = []
-        removed_indices = []
-        
-        # Iterate through each line in the matrix
-        for i, line in enumerate(matrix):
-            # Check if all elements in the line are in the elements_to_remove list
-            if not all(element in elements_to_remove for element in line):
-                # If not all elements are in the elements_to_remove list, add the line to the filtered matrix
-                filtered_matrix.append(line)
-            else:
-                # If all elements are in the elements_to_remove list, add the index of the removed line
-                removed_indices.append(i)
-        
-        return filtered_matrix, removed_indices
-
-    # Example usage:
-   
-    all_coh_ind, removed_indices = remove_lines_with_subset_elements(all_coh_ind, nodes_indices_remove)
-    all_coh_val = [element for index, element in enumerate(all_coh_val ) if index not in removed_indices]
-
-    def subtract_counts(all_supports_ind, nodes_indices_remove):
-    # Initialize an empty result list to store the counts
-        result = []
-        
-        # Iterate over each element in the matrix
-        for row in all_supports_ind:
-            new_row = []
-            for num1 in row:
-                # Count the number of elements in the vector lower or equal to the current element
-                count = sum(1 for num2 in nodes_indices_remove if num2 <= num1)
-                # Subtract the count from the current element and store in the result list
-                new_row.append(num1 - count)
-            result.append(new_row)
-        
-        return result
-    
   
-    
 
-    all_coh_ind = subtract_counts(all_coh_ind, nodes_indices_remove )
 
-    #Calculate supports indices after removing repetition
-    
-    # Convert lists to NumPy arrays for efficient computation
     
     all_supports_ind = np.array(all_supports_ind)
-    nodes_indices_remove = np.array(nodes_indices_remove)
-
-    # Initialize an empty result array to store the counts
-    result = np.zeros_like(all_supports_ind)
-
-    # Iterate over each element in the first list
-    for i, num1 in enumerate(all_supports_ind):
-        # Count the number of elements in the second list lower than num1
-        count = np.sum(nodes_indices_remove < num1)
-        # Store the count in the result array
-        result[i] = count
-
-    all_supports_ind = all_supports_ind - result 
-
-
     
-
-    
-    aval, arow, acol =  remove_columns_and_sparse(eq_dense, col_indices_remove)
-    aval = list(aval)
-    arow = list(arow)
-    acol = list(acol)
     import sys
     import mosek
     import math
     # Since the actual value of Infinity is ignores, we define it solely
     # for symbolic purposes:
     inf = 0.0
+
+    aval = equilibrium_matrix
+    acol = equilibrium_matrix_col
+    arow = equilibrium_matrix_row
+
+    avalk = equilibrium_matrix
+    acolk = equilibrium_matrix_col
+    arowk = equilibrium_matrix_row
+    #static approach
     bars_cap = []
    
     if True:
@@ -1543,33 +1179,26 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
             
             
         
-    aval = equilibrium_matrix
-    acol = equilibrium_matrix_col
-    arow = equilibrium_matrix_row
-
-    avalk = equilibrium_matrix
-    acolk = equilibrium_matrix_col
-    arowk = equilibrium_matrix_row
-    #static approach
     
-    print("lennn", len(col_indices_remove)/3) 
+    
+    
 
     n = int((max(equilibrium_matrix_col)+1)/3)
     
-    print("nnnnn",n)
+
     if True:
         with mosek.Task() as task:
             task = mosek.Task() 
             # Attach a printer to the task
             task.set_Stream(mosek.streamtype.log, streamprinter)
     
-            nef = n - int(len(col_indices_remove)/3)
-            print("neff",nef)
+            nef = n 
+          
             bkx = []
             cohs = []
             #bkx = [mosek.boundkey.fr, mosek.boundkey.fr, mosek.boundkey.up]*nef   #variables lower bounded, if free just put .fr
             for i in range(nef):
-                if i not in all_supports_ind:
+                if i not in supports_nodes:
                     bkx += [mosek.boundkey.fr, mosek.boundkey.fr, mosek.boundkey.up] #variables lower bounds
                 else:
                     bkx += [mosek.boundkey.fr, mosek.boundkey.fr, mosek.boundkey.fr] #variables lower bounds
@@ -1579,12 +1208,12 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
             blx = []
             bux = []
             for i in range(nef):
-                blx += [-inf, -inf , -inf ] #variables lower bounds
+                blx += [-inf, -inf , -20 ] #variables lower bounds
                 
             blx +=  [0]*1 +  [ -0*element for element in bars_cap] 
             
             for i in range(nef):
-                if i not in all_supports_ind:
+                if i not in supports_nodes:
                     bux += [-inf, -inf , 0 ] #variables lower bounds
                 else:
                     bux += [-inf, -inf , -inf ] #variables lower bounds
@@ -1701,22 +1330,31 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
             # Create a matrix F such that F * x = [x(3),x(0),x(1),x(4),x(5),x(2)] 
             task.appendafes(3*nef)
             print("nefffff", nef)
+            print("suppporttt",supports_nodes)
             list_con = []
             list_coef = []
             friction_ang = 33
             for ind in range(nef):
-                if ind not in all_supports_ind:
-                    
+                if (ind +1) not in supports_nodes:
+                    friction_ang = 33
                     c = 0 # input value
+                    
+                    if (ind+1) in all_phi_nodes:
+                        friction_ang = float(all_phi_val[all_phi_nodes.index(ind + 1)])
+                     
+                        
+                    
 
-                    if find_element_in_matrix(all_coh_ind, ind) != -1:
-                        c = all_coh_val[find_element_in_matrix(all_coh_ind, ind)]
+                    if (ind+1) in all_coh_nodes:
+                        c = all_coh_val[all_coh_nodes.index(ind+1)]
                         
                     cohs += [-c,0,0]
                     list_con += [3*ind + 2 , 3*ind,3*ind + 1]
+                   
                     list_coef += [-math.tan(math.radians(friction_ang)),1.0,1.0]
-                
-            task.putafefentrylist(range(3*nef - len(all_supports_ind) ),                      # Rows
+                    
+            print(list_coef)    
+            task.putafefentrylist(range(3*nef - len(supports_nodes) ),                      # Rows
                                 list_con ,            # Columns 
                                 list_coef  )          #coefficients
     
@@ -1724,7 +1362,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
             
             
             coh_vect = []
-            for ind in range(nef - len(all_supports_ind) ):
+            for ind in range(nef - len(supports_nodes) ):
                 
                 #if ind not in all_supports_ind:
                 if True:
@@ -1786,7 +1424,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     
    
     
-    
+    print("allll phi nodessssss",all_phi_nodes)
     
         
     #non associative calc
@@ -2250,10 +1888,12 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     all_triangles = output[4]
     triangles_num = max(output[5]) 
 
-    stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num ,all_triangles,xx[0:3*nef+1])
-    print("ubbb",ub)
-    print(all_coh_ind)
-    print(all_coh_val)
+    noc_triangles_coor = output[6]
+    noc_triangles = output[7]
+    Ntriangles_num = max(output[8]) 
+
+    stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num ,all_triangles,Ntriangles_num,xx[0:3*n+1])
+
     return ub
 
 def face_mesh(nodes):
@@ -2331,14 +1971,8 @@ def face_mesh_read():
 
 ub  = problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att)
 block_disp_plot(blocks_centroid,blocks,faces,points,ub)
-print(blocks_att)
-print(bpts_inter)
-print(bars_data)
-print(blocks)
-print(face_rep)
-print(plans_rep)
-print(plan_ind)
-print(local_ref.shape)
-print(f_points)
 
+
+print(faces_rep)
+print(plans_rep)
 
