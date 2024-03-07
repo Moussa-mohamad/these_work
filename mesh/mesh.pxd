@@ -21,11 +21,13 @@ cdef extern from "meshKernel.hxx":
         double* ContactsPointsCoords;
         int* ContactsTriNodes;
         int* ContactsTriNum;
+        int* ContactsNodesNum;
         int Contacts_pts_num;
 
         double* NContactsPointsCoords;
         int* NContactsTriNodes;
         int* NContactsTriNum;
+        int* NContactsNodesNum;
         int NContacts_pts_num;
 
 

@@ -65,9 +65,10 @@ def print_hello_pyth(np.ndarray[int, ndim=1] active_faces, np.ndarray[double, nd
     ContactsTriNum = [pointer.ContactsTriNum[i] for i in range(active_faces_num + 1) ]
     NContactsTriNum = [pointer.NContactsTriNum[i] for i in range(faces_num - active_faces_num + 1) ]
     
-    ContactsTriNodes = [[[pointer.ContactsTriNodes[3*j + i ] for i in range(3) ]  for j in range( ContactsTriNum[k],ContactsTriNum[k+1] )   ] for k in range(active_faces_num ) ] 
-    NContactsTriNodes = [[[pointer.NContactsTriNodes[3*j + i ] for i in range(3) ]  for j in range( NContactsTriNum[k],NContactsTriNum[k+1] )   ] for k in range(faces_num - active_faces_num ) ] 
+    ContactsTriNodes = [[[pointer.ContactsTriNodes[i ] for i in range(pointer.ContactsNodesNum[j], pointer.ContactsNodesNum[j+1] ) ]  for j in range( ContactsTriNum[k],ContactsTriNum[k+1] )   ] for k in range(active_faces_num ) ] 
+    NContactsTriNodes = [[[pointer.NContactsTriNodes[ i ] for i in range(pointer.NContactsNodesNum[j], pointer.NContactsNodesNum[j+1] ) ]  for j in range( NContactsTriNum[k],NContactsTriNum[k+1] )   ] for k in range(faces_num - active_faces_num ) ] 
 
-
+    print(ContactsTriNodes)
+    print(NContactsTriNodes)
     return  eq_coefs, eq_rows, eq_cols, ContactsPointsCoords,  ContactsTriNodes,  ContactsTriNum, NContactsPointsCoords,  NContactsTriNodes,  NContactsTriNum 
 

@@ -131,6 +131,9 @@ def stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num,
     y = [float(element) for element in all_unique_points[:, 1]]
     z = [float(element) for element in all_unique_points[:, 2]]
 
+    print("xxxxxx",len(x))
+
+    print(len(normal_load))
     
     x = np.array(x, dtype = np.float64)
     y = np.array(y,dtype = np.float64)
@@ -138,28 +141,42 @@ def stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num,
     
 
     # Define connectivity or vertices that belong to each element
-    conn = np.zeros(3*triangles_num, dtype = np.int32)
+    conn = []
     # Define offset of the last vertex of each element
-    offset = np.zeros(triangles_num , dtype = np.int32)
+    offset = []
     # Define cell types
-    ctype = np.zeros(triangles_num)
+    ctype = []
    
     
     tri_ind = 0
+    node_ind = 0
  
     for face_triangles in all_triangles:
       
         for triangle in face_triangles:
-        
-            conn[3*tri_ind], conn[3*tri_ind + 1], conn[3*tri_ind +2] = int(triangle[0]-1), int(triangle[1]-1), int(triangle[2]-1)  # first triangle
-            offset[tri_ind] = 3*tri_ind +3
-            ctype[tri_ind] = VtkTriangle.tid
-            tri_ind += 1
+            for node in triangle:
+                conn.append(int(node-1))
+                node_ind += 1
 
-    
+
+            offset.append(node_ind )
+
+            if len(triangle) == 3:
+                ctype.append(VtkTriangle.tid)
+            else:
+                
+                ctype.append(VtkQuad.tid)
+          
+  
+
+    conn =  np.array(conn)
+    offset =  np.array(offset)
+    ctype =  np.array(ctype)
+
     #cd = np.random.rand(2)
     cellData = {"pressure": []}
 
+    
     # Define displacement components
     normal_stress = np.array(normal_load)
     shear_stress1 = np.array(shear_loadx)
@@ -173,7 +190,7 @@ def stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num,
     
     # Add combined displacement to pointData
     #pointData["displacement"] = displacement
-    
+    print(conn)
     unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
     
     
@@ -196,26 +213,38 @@ def stat_parav(all_unique_points,noc_triangles_coor,noc_triangles,triangles_num,
     y = np.array(y,dtype = np.float64)
     z = np.array(z,dtype = np.float64)
     
-
-    # Define connectivity or vertices that belong to each element
-    conn = np.zeros(3*Ntriangles_num, dtype = np.int32)
+     # Define connectivity or vertices that belong to each element
+    conn = []
     # Define offset of the last vertex of each element
-    offset = np.zeros(Ntriangles_num , dtype = np.int32)
+    offset = []
     # Define cell types
-    ctype = np.zeros(Ntriangles_num)
-   
-    
+    ctype = []
+
     tri_ind = 0
+    node_ind = 0
  
     for face_triangles in noc_triangles:
       
         for triangle in face_triangles:
-        
-            conn[3*tri_ind], conn[3*tri_ind + 1], conn[3*tri_ind +2] = int(triangle[0]-1), int(triangle[1]-1), int(triangle[2]-1)  # first triangle
-            offset[tri_ind] = 3*tri_ind +3
-            ctype[tri_ind] = VtkTriangle.tid
-            tri_ind += 1
-    
+            for node in triangle:
+                conn.append(int(node-1))
+                node_ind += 1
+
+
+            offset.append(node_ind )
+
+            if len(triangle) == 3:
+                ctype.append(VtkTriangle.tid)
+            else:
+               
+                ctype.append(VtkQuad.tid)
+          
+  
+
+    conn =  np.array(conn)
+    offset =  np.array(offset)
+    ctype =  np.array(ctype)
+
     pointData = {'d': np.ones(x.shape[0])}
 
     unstructuredGridToVTK(FILE_PATH, x, y, z, connectivity=conn, offsets=offset, cell_types=ctype, pointData=pointData)
@@ -435,9 +464,17 @@ for obj in objs:
 
     if obj_type == 8: # Check if the object is a surface
       
-        points = rs.SurfacePoints(obj)
-     
-
+        
+        boundary_curve_id = rs.DuplicateSurfaceBorder(obj)
+        # Get points along the boundary curve
+        points = rs.CurvePoints(boundary_curve_id)
+        points = points[0:-1:]
+        print(points[1])
+        
+        #points = rs.SurfacePoints(obj)
+        #print(rs.SurfacePointCount(obj))
+ #mohamaddddd
+        
         for i, point in enumerate(points):
             print(point)
             plans_data = np.append(plans_data, np.array([[ plan_ind, np.round(point[0],5) , np.round( point[1],5), np.round(point[2],5) ]]), axis = 0)
@@ -636,7 +673,7 @@ if plans_data.shape[0] != 0:
         for  element in plan_elements:
             pt_coor = element[-3:]
             pt_ind = np.where( np.all(points[:,-3:] == pt_coor, axis=1)  )[0]
-            print(pt_ind)
+            
             plan_pts.extend(pt_ind)
         
         sorted_plan_pts = sorted(set(plan_pts))
@@ -649,12 +686,9 @@ if plans_data.shape[0] != 0:
     
 for ind in contacts_ind:    blocks[np.where(blocks[:,1] == ind)[0], 4] = 1
 
-print("hereee",contacts_ind)
-print(supports_type)
 
 supports_rep = set(plans_rep) &  set(faces_rep)
-print(supports_type)
-print(plans_rep)
+
 for ind in supports_rep :
     if supports_type[plans_rep.index(ind)] == 2:
         
@@ -688,7 +722,7 @@ for ind in supports_rep :
     if coh_type[plans_rep.index(ind)] != -1:
         blocks[np.where(blocks[:,1] == faces_rep.index(ind) +1)[0] , 5 ] = float(coh_type[plans_rep.index(ind)])
 
-print("hereee",contacts_ind)
+
 # Select the curve(s) you want to split
 #curve_ids = rs.GetObjects("Select curve(s) to split", rs.filter.curve)
 
@@ -794,14 +828,15 @@ if True:
 lc = 1
 
 lc_faces_val = lc*np.ones((len(contacts_ind)), dtype = np.float64)
-print(len(contacts_ind))
 
+print(faces_rep)
+print(plans_rep)
 for ind, lc_face  in enumerate(lc_type):
     if lc_face != -1:
-        print(plans_rep)
+       
         face_ind = faces_rep.index( plans_rep[ind] )
         contact_ind = contacts_ind.index(face_ind + 1)
-        print(contact_ind)
+     
         lc_faces_val[contact_ind] = float(lc_face)
 
 
@@ -815,7 +850,7 @@ contacts_ind = np.array(contacts_ind, dtype = np.int32)
 faces_nodes = np.array(faces_nodes, dtype = np.int32)
 faces_FE = np.array(faces_FE, dtype = np.int32)
 
-print("lccccccccccc", lc_faces_val)
+
 
 
 
@@ -827,7 +862,7 @@ output = mesh.print_hello_pyth( contacts_ind,  np.array(blocks, dtype = np.float
 
 supports_nodes = set()
 
-print("lennnnnnnnn", len(output[4]))
+
 for pos in supports_pos:
     for tri in output[4][pos]:
             supports_nodes.update({ tri[0], tri[1], tri[2] } )
@@ -840,7 +875,7 @@ all_coh_val = []
 
 for ind, coh in enumerate(coh_type):
     if coh != -1:
-        print(faces_rep)
+     
         faces_pos = faces_rep.index( plans_rep[ind] )
         contact_pos = contacts_ind_sorted.index( faces_pos + 1 )
 
@@ -876,12 +911,11 @@ for ind, phi in enumerate(phi_type):
 
 all_phi_nodes = list(all_phi_nodes)
 
-print(all_phi_nodes)
-print(all_phi_val)
+
 
 bars_data = np.unique(bars_data,axis = 0)
 #old part 
-print("typeeee",phi_type)
+
 
 def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att):
     kc = 0
@@ -1065,7 +1099,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     
     #equilibrium_matrix_col.insert(50,3*n)
     
-    print(len(equilibrium_matrix_row))
+
 
     # Print the result
     live_load = [0]*6*nb
@@ -1185,7 +1219,6 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
 
     n = int((max(equilibrium_matrix_col)+1)/3)
     
-
     if True:
         with mosek.Task() as task:
             task = mosek.Task() 
@@ -1324,13 +1357,11 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
                 # Input column j of A
                 task.putacol(j,     asub_mos[j],aval_mos[j])            # Non-zero Values of column j.
             
-            
-            print("supp ind",all_supports_ind)
+         
         # Input the affine conic constraints
             # Create a matrix F such that F * x = [x(3),x(0),x(1),x(4),x(5),x(2)] 
             task.appendafes(3*nef)
-            print("nefffff", nef)
-            print("suppporttt",supports_nodes)
+         
             list_con = []
             list_coef = []
             friction_ang = 33
@@ -1353,7 +1384,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
                    
                     list_coef += [-math.tan(math.radians(friction_ang)),1.0,1.0]
                     
-            print(list_coef)    
+             
             task.putafefentrylist(range(3*nef - len(supports_nodes) ),                      # Rows
                                 list_con ,            # Columns 
                                 list_coef  )          #coefficients
@@ -1421,11 +1452,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
             #del task  # Delete the task object
     
     
-    
-   
-    
-    print("allll phi nodessssss",all_phi_nodes)
-    
+
         
     #non associative calc
     tol =1
@@ -1826,8 +1853,7 @@ def problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_att
     dims = {'l': 0, 'q': q, 's': []}
  
     #sol = solvers.conelp(c, MCoul_matrix_sparse , h , dims, equilibrium_matrix_sparse, b)
-    
-    #print(sol["x"])
+  
     if False:
         # ipopt part
         ind = [element + 1 for element in range(len(equilibrium_matrix))]
@@ -1973,6 +1999,4 @@ ub  = problem_building_up(blocks_centroid,points,faces,blocks,local_ref,blocks_a
 block_disp_plot(blocks_centroid,blocks,faces,points,ub)
 
 
-print(faces_rep)
-print(plans_rep)
 

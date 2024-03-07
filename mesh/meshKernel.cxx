@@ -9,10 +9,8 @@
 #include <iomanip>
 #include <unordered_set>
 #include <unordered_map>
-
-
-
-
+#include <iostream>
+#include <random>
 
 
 std::pair<std::vector<int>, std::vector<int>> extractNonZeroWithIndices(const std::vector<int>& source) {
@@ -55,15 +53,15 @@ double calculate_triangle_area(const Eigen::Vector3d& v1,
     return area;
 }
 
-void barycentric_coordinates(Eigen::Vector3d pt, Eigen::Matrix3d& triangle_coords,
+void barycentric_coordinates(Eigen::Vector3d pt, std::vector<std::vector<double>> triangle_coords,
     double* alpha, double* beta, double* gamma) {
    
     
     // Extract triangle vertices coordinates
     
-    Eigen::Vector3d pt1 = triangle_coords.row(0);
-    Eigen::Vector3d pt2 =  triangle_coords.row(1);
-    Eigen::Vector3d pt3 = triangle_coords.row(2);
+    Eigen::Vector3d pt1 = { triangle_coords[0][0], triangle_coords[0][1] , triangle_coords[0][2] };
+    Eigen::Vector3d pt2 = { triangle_coords[1][0], triangle_coords[1][1] , triangle_coords[1][2] };
+    Eigen::Vector3d pt3 = { triangle_coords[2][0], triangle_coords[2][1] , triangle_coords[2][2] };
    
 
     double area_total = calculate_triangle_area(pt1, pt2, pt3);
@@ -77,11 +75,84 @@ void barycentric_coordinates(Eigen::Vector3d pt, Eigen::Matrix3d& triangle_coord
     *gamma = area3 / area_total;
 }
 
-std::tuple<std::vector<double>, std::vector<double>> integral_gauss(Eigen::Matrix3d& vertices,
+// Function to transform points to local reference frame
+std::array<Eigen::Vector3d, 4> transform_to_local_frame(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3, const Eigen::Vector3d& p4,
+    const Eigen::Vector3d& x_local, const Eigen::Vector3d& y_local, const Eigen::Vector3d& normal) {
+    // Calculate centroid of the quadraque
+    Eigen::Vector3d ref = p1;
+
+    // Construct transformation matrix from global to local reference frame
+    Eigen::Matrix3d localFrame;
+    localFrame << x_local.transpose(),
+        y_local.transpose(),
+        normal.transpose(); // Negative sign for the v direction
+
+    // Translate centroid to origin
+    Eigen::Vector3d translation = -localFrame * ref;
+    translation = - ref;
+    // Apply translation to all points
+    std::array<Eigen::Vector3d, 4> localPoints = { localFrame * (p1 + translation),
+                                                   localFrame * (p2 + translation),
+                                                   localFrame * (p3 + translation),
+                                                   localFrame * (p4 + translation) };
+
+    return localPoints;
+}
+
+
+// Function to compute the integral using Gaussian quadrature with Jacobian
+std::vector<double> quad4_integration_with_jacobian( const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3, const Eigen::Vector3d& p4) {
+    // Gaussian quadrature points and weights
+
+    std::array<Eigen::Vector2d, 4> points = { {{-sqrt(3) / 3, -sqrt(3) / 3},
+                                              {sqrt(3) / 3, -sqrt(3) / 3},
+                                              {sqrt(3) / 3, sqrt(3) / 3},
+                                              {-sqrt(3) / 3, sqrt(3) / 3}} };
+    std::array<double, 4> weights = { 1, 1, 1, 1 };
+    printf("entered");
+    std::vector<double> integral ;
+    for (int i = 0; i < 4; ++i) {
+        double xi = points[i][0];
+        double eta = points[i][1];
+        double weight = weights[i];
+
+        
+        // Calculate Jacobian determinant
+        double dxdxi = 0.25 * ((p2[0] - p1[0]) * (1 - eta) + (p3[0] - p4[0]) * (1 + eta));
+        double dxdeta = 0.25 * ((p4[0] - p1[0]) * (1 - xi) + (p3[0] - p2[0]) * (1 + xi));
+        double dydxi = 0.25 * ((p2[1] - p1[1]) * (1 - eta) + (p3[1] - p4[1]) * (1 + eta));
+        double dydeta = 0.25 * ((p4[1] - p1[1]) * (1 - xi) + (p3[1] - p2[1]) * (1 + xi));
+        double detJ = dxdxi * dydeta - dxdeta * dydxi;
+
+        
+
+
+
+        
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+            // Define the range for random doubles
+            double lower_bound = 10;
+            double upper_bound = 100;
+            std::uniform_real_distribution<double> distribution(lower_bound, upper_bound);
+
+           
+            //detJ = distribution(gen);
+
+            std::cout << "dettttttttttttttttttttttttttttttttttttt" << detJ;
+        integral.push_back(detJ* weight);
+       
+    }
+
+    return integral;
+}
+
+std::tuple<std::vector<double>, std::vector<double>> integral_gauss( std::vector<std::vector<double>> vertices,
     Eigen::Matrix3d& local_ref,
     const Eigen::Vector3d& block_centroid,
     const std::vector<double>& rhos) {
-    // Define Gauss points positions in normalized coordinates
+  
     
     double s1 = 1.0 / 6.0;
     double t1 = 1.0 / 6.0;
@@ -96,109 +167,223 @@ std::tuple<std::vector<double>, std::vector<double>> integral_gauss(Eigen::Matri
     Eigen::Vector3d y_local = local_ref.row(1);
     Eigen::Vector3d normal = local_ref.row(2);
     
+    std::vector<double> moment_terms; // Initialize the vector with zeros
 
+    std::vector<double> load_terms;
+
+    if (vertices.size() == 3)
+    {
+        s1 = 1.0 / 6.0;
+        t1 = 1.0 / 6.0;
+
+        s2 = 2.0 / 3.0;
+        t2 = 1.0 / 6.0;
+
+        s3 = 1.0 / 6.0;
+        t3 = 2.0 / 3.0;
+
+        // Define  Gauss points for triangles
+        Eigen::Vector3d pt1(s1 * (vertices[1][0] - vertices[0][0]) + t1 * (vertices[2][0] - vertices[0][0]) + vertices[0][0],
+            s1 * (vertices[1][1] - vertices[0][1]) + t1 * (vertices[2][1] - vertices[0][1]) + vertices[0][1],
+            s1 * (vertices[1][2] - vertices[0][2]) + t1 * (vertices[2][2] - vertices[0][2]) + vertices[0][2]);
+
+        Eigen::Vector3d pt2(s2 * (vertices[1][0] - vertices[0][0]) + t2 * (vertices[2][0] - vertices[0][0]) + vertices[0][0],
+            s2 * (vertices[1][1] - vertices[0][1]) + t2 * (vertices[2][1] - vertices[0][1]) + vertices[0][1],
+            s2 * (vertices[1][2] - vertices[0][2]) + t2 * (vertices[2][2] - vertices[0][2]) + vertices[0][2]);
+
+        Eigen::Vector3d pt3(s3 * (vertices[1][0] - vertices[0][0]) + t3 * (vertices[2][0] - vertices[0][0]) + vertices[0][0],
+            s3 * (vertices[1][1] - vertices[0][1]) + t3 * (vertices[2][1] - vertices[0][1]) + vertices[0][1],
+            s3 * (vertices[1][2] - vertices[0][2]) + t3 * (vertices[2][2] - vertices[0][2]) + vertices[0][2]);
+
+        // Calculate barycentric coordinates for each Gauss point
+
+        std::array<std::array<double, 3>, 3> coefs;
+
+        barycentric_coordinates(pt1, vertices, &coefs[0][0], &coefs[1][0], &coefs[2][0]);
+
+
+        barycentric_coordinates(pt2, vertices, &coefs[0][1], &coefs[1][1], &coefs[2][1]);
+
+
+        barycentric_coordinates(pt3, vertices, &coefs[0][2], &coefs[1][2], &coefs[2][2]);
+
+
+        // Calculate triangle area
+        double triangle_area = calculate_triangle_area({ vertices[0][0],  vertices[0][1],  vertices[0][2] }, { vertices[1][0],  vertices[1][1],  vertices[1][2] }, { vertices[2][0],  vertices[2][1],  vertices[2][2] });
+        double jac = 2 * triangle_area; //jacobian of the transformation
+        // Define weight of each Gauss vertex
+        double w = 1.0 / 6.0;
+
+        // Calculate load terms
+        double load_term1 = 2 * triangle_area * w * (coefs[0][0] + coefs[0][1] + coefs[0][2]);
+        double load_term2 = 2 * triangle_area * w * (coefs[1][0] + coefs[1][1] + coefs[1][2]);
+        double load_term3 = 2 * triangle_area * w * (coefs[2][0] + coefs[2][1] + coefs[2][2]);
+
+        load_terms = { load_term1, load_term2, load_term3 };
+
+        //std::vector<double> moment_terms(27, 0.0); // Initialize the vector with zeros
     
 
+        double moments[3][3][3] = { { { calculate_moment(block_centroid, x_local, pt1)[0], calculate_moment(block_centroid, x_local, pt1)[1], calculate_moment(block_centroid, x_local, pt1)[2]},
+                                      { calculate_moment(block_centroid, x_local, pt2)[0], calculate_moment(block_centroid, x_local, pt2)[1], calculate_moment(block_centroid, x_local, pt2)[2] },
+                                      { calculate_moment(block_centroid, x_local, pt3)[0], calculate_moment(block_centroid, x_local, pt3)[1], calculate_moment(block_centroid, x_local, pt3)[2] } },
+                                    
+                                    { { calculate_moment(block_centroid, y_local, pt1)[0], calculate_moment(block_centroid, y_local, pt1)[1], calculate_moment(block_centroid, y_local, pt1)[2]},
+                                      { calculate_moment(block_centroid, y_local, pt2)[0], calculate_moment(block_centroid, y_local, pt2)[1], calculate_moment(block_centroid, y_local, pt2)[2] },
+                                      { calculate_moment(block_centroid, y_local, pt3)[0], calculate_moment(block_centroid, y_local, pt3)[1], calculate_moment(block_centroid, y_local, pt3)[2] }},
+                                    
+                                    { { calculate_moment(block_centroid, normal, pt1)[0], calculate_moment(block_centroid, normal, pt1)[1], calculate_moment(block_centroid, normal, pt1)[2]},
+                                      { calculate_moment(block_centroid, normal, pt2)[0], calculate_moment(block_centroid, normal, pt2)[1], calculate_moment(block_centroid, normal, pt2)[2] },
+                                      { calculate_moment(block_centroid, normal, pt3)[0], calculate_moment(block_centroid, normal, pt3)[1], calculate_moment(block_centroid, normal, pt3)[2] } } };
 
-    // Define first Gauss point
-    Eigen::Vector3d pt1(s1 * (vertices(1, 0) - vertices(0, 0)) + t1 * (vertices(2, 0) - vertices(0, 0)) + vertices(0, 0),
-        s1 * (vertices(1, 1) - vertices(0, 1)) + t1 * (vertices(2, 1) - vertices(0, 1)) + vertices(0, 1),
-        s1 * (vertices(1, 2) - vertices(0, 2)) + t1 * (vertices(2, 2) - vertices(0, 2)) + vertices(0, 2) );
 
-    Eigen::Vector3d pt2(s2 * (vertices(1, 0) - vertices(0, 0)) + t2 * (vertices(2, 0) - vertices(0, 0)) + vertices(0, 0),
-        s2 * (vertices(1, 1) - vertices(0, 1)) + t2 * (vertices(2, 1) - vertices(0, 1)) + vertices(0, 1),
-        s2 * (vertices(1, 2) - vertices(0, 2)) + t2 * (vertices(2, 2) - vertices(0, 2)) + vertices(0, 2) );
 
-    Eigen::Vector3d pt3( s3 * (vertices(1, 0) - vertices(0, 0)) + t3 * (vertices(2, 0) - vertices(0, 0)) + vertices(0, 0),
-        s3 * (vertices(1, 1) - vertices(0, 1)) + t3 * (vertices(2, 1) - vertices(0, 1)) + vertices(0, 1),
-        s3 * (vertices(1, 2) - vertices(0, 2)) + t3 * (vertices(2, 2) - vertices(0, 2)) + vertices(0, 2) );
+        std::vector<double> moment_terms_res(27, 0.0); // Initialize the vector with zeros
+
+        for (int k = 0; k < 3; ++k) {
+            for (int j = 0; j < 3; ++j) {
+                for (int i = 0; i < 3; ++i) {
+                    double value = jac * w * (coefs[k][0] * moments[i][0][j] + coefs[k][1] * moments[i][1][j] + coefs[k][2] * moments[i][2][j]);
+                    moment_terms_res[9 * k + 3 * j + i] = value;
     
-    // Calculate barycentric coordinates for each Gauss point
-    //double (*coefs)[3][3] = {};
-    std::array<std::array<double, 3>, 3> coefs;
-
-    barycentric_coordinates(pt1, vertices, &coefs[0][0], &coefs[1][0], &coefs[2][0]);
-    
-    
-    barycentric_coordinates(pt2, vertices, &coefs[0][1], &coefs[1][1], &coefs[2][1]);
-
-
-    barycentric_coordinates(pt3, vertices, &coefs[0][2], &coefs[1][2], &coefs[2][2]);
-
-
-
-    
-    // Calculate triangle area
-    double triangle_area = calculate_triangle_area(vertices.row(0), vertices.row(1), vertices.row(2));
-    double jac = 2 * triangle_area; //jacobian of the transformation
-    // Define weight of each Gauss vertex
-    double w = 1.0 / 6.0;
-
-    // Calculate load terms
-    double load_term1 = 2 * triangle_area * w * (coefs[0][0] + coefs[0][1] + coefs[0][2]);
-    double load_term2 = 2 * triangle_area * w * (coefs[1][0] + coefs[1][1] + coefs[1][2]);
-    double load_term3 = 2 * triangle_area * w * (coefs[2][0] + coefs[2][1] + coefs[2][2]);
-
-    std::vector<double> load_terms = { load_term1, load_term2, load_term3 };
-
-  
- 
-    // Define functions to calculate moments at each Gauss point
-    auto calculate_pt_moment = [&](const Eigen::Vector3d& pt) {
-        return calculate_moment(block_centroid, x_local, pt),
-            calculate_moment(block_centroid, y_local, pt),
-            calculate_moment(block_centroid, normal, pt);
-        };
-
-
-    std::vector<double> moment_terms(27, 0.0); // Initialize the vector with zeros
-    std::vector<int> non_zero_indices(27, 0.0); // Vector to store indices of non-zero elements
-
-    double moments[3][3][3] = { { { calculate_moment(block_centroid, x_local, pt1)[0], calculate_moment(block_centroid, x_local, pt1)[1], calculate_moment(block_centroid, x_local, pt1)[2]},
-                                  { calculate_moment(block_centroid, x_local, pt2)[0], calculate_moment(block_centroid, x_local, pt2)[1], calculate_moment(block_centroid, x_local, pt2)[2] },
-                                  { calculate_moment(block_centroid, x_local, pt3)[0], calculate_moment(block_centroid, x_local, pt3)[1], calculate_moment(block_centroid, x_local, pt3)[2] } },
-                                { { calculate_moment(block_centroid, y_local, pt1)[0], calculate_moment(block_centroid, y_local, pt1)[1], calculate_moment(block_centroid, y_local, pt1)[2]},
-                                  { calculate_moment(block_centroid, y_local, pt2)[0], calculate_moment(block_centroid, y_local, pt2)[1], calculate_moment(block_centroid, y_local, pt2)[2] },
-                                  { calculate_moment(block_centroid, y_local, pt3)[0], calculate_moment(block_centroid, y_local, pt3)[1], calculate_moment(block_centroid, y_local, pt3)[2] }},
-                                { { calculate_moment(block_centroid, normal, pt1)[0], calculate_moment(block_centroid, normal, pt1)[1], calculate_moment(block_centroid, normal, pt1)[2]},
-                                  { calculate_moment(block_centroid, normal, pt2)[0], calculate_moment(block_centroid, normal, pt2)[1], calculate_moment(block_centroid, normal, pt2)[2] },
-                                  { calculate_moment(block_centroid, normal, pt3)[0], calculate_moment(block_centroid, normal, pt3)[1], calculate_moment(block_centroid, normal, pt3)[2] } } };
-
-
-
-    //Eigen::Vector3d pt1_x_moment, pt1_y_moment, pt1_z_moment;
-    //// Calculate moments at each Gauss point
-    //pt1_x_moment = calculate_moment(block_centroid, x_local, pt1);
-    //pt1_y_moment = calculate_moment(block_centroid, y_local, pt1);
-    //pt1_z_moment = calculate_moment(block_centroid, normal, pt1);
-
-    //Eigen::Vector3d pt2_x_moment, pt2_y_moment, pt2_z_moment;
-    //// Calculate moments at each Gauss point
-    //pt2_x_moment = calculate_moment(block_centroid, x_local, pt2);
-    //pt2_y_moment = calculate_moment(block_centroid, y_local, pt2);
-    //pt2_z_moment = calculate_moment(block_centroid, normal, pt2);
-
-    //Eigen::Vector3d pt3_x_moment, pt3_y_moment, pt3_z_moment;
-
-    //pt3_x_moment = calculate_moment(block_centroid, x_local, pt3);
-    //pt3_y_moment = calculate_moment(block_centroid, y_local, pt3);
-    //pt3_z_moment = calculate_moment(block_centroid, normal, pt3);
-    //
-    //int index = 0;
-    for (int k = 0; k < 3; ++k) {
-        for (int j = 0; j < 3; ++j) {
-            for (int i = 0; i < 3; ++i) {
-                double value = jac * w * (coefs[k][0] * moments[i][0][j] + coefs[k][1] * moments[i][1][j] + coefs[k][2] * moments[i][2][j]);
-                //if (abs(value) > 1e-5 ) {
-                moment_terms[9 * k + 3 * j + i] = value;
-                    //non_zero_indices[index] = 9 * k + 3 * j + i; // Store the index of the non-zero element
-                    //index++; 
-               // }
-               
+                }
             }
         }
-    }
 
+        moment_terms = moment_terms_res;
+
+    }
+    else
+    {
+        double a = 1 / sqrt(3);
+
+        s1 = -a;
+        t1 = -a;
+
+        s2 = a;
+        t2 = -a;
+
+        s3 = a;
+        t3 = a;
+
+        double s4 = -a;
+        double t4 = a;
+
+        std::array<std::array<double, 4>, 4> coefs;
+
+        std::array<Eigen::Vector3d, 4> localPoints;
+
+        std::vector<double> integral;
+
+        const Eigen::Vector3d p1(vertices[0][0], vertices[0][1], vertices[0][2] );
+        const Eigen::Vector3d p2(vertices[1][0], vertices[1][1], vertices[1][2]);
+        const Eigen::Vector3d p3(vertices[2][0], vertices[2][1], vertices[2][2]);
+        const Eigen::Vector3d p4(vertices[3][0], vertices[3][1], vertices[3][2]);
+
+
+        printf("before local");
+        localPoints = transform_to_local_frame(p1, p2, p3, p4, x_local, y_local, normal);
+        printf("after local");
+
+                for (int el = 0; el < 4; ++el)
+            std::cout << localPoints[el] << std::endl;
+
+
+        integral = quad4_integration_with_jacobian(localPoints[0], localPoints[1], localPoints[2], localPoints[3]);
+
+        printf("after quad");
+
+        coefs[0][0] = (1 - s1) * (1 - t1) / 4;
+        coefs[1][0] = (1 + s1) * (1 - t1) / 4;
+        coefs[2][0] = (1 + s1) * (1 + t1) / 4;
+        coefs[3][0] = (1 - s1) * (1 + t1) / 4;
+
+        coefs[0][1] = (1 - s2) * (1 - t2) / 4;
+        coefs[1][1] = (1 + s2) * (1 - t2) / 4;
+        coefs[2][1] = (1 + s2) * (1 + t2) / 4;
+        coefs[3][1] = (1 - s2) * (1 + t2) / 4;
+
+        coefs[0][2] = (1 - s3) * (1 - t3) / 4;
+        coefs[1][2] = (1 + s3) * (1 - t3) / 4;
+        coefs[2][2] = (1 + s3) * (1 + t3) / 4;
+        coefs[3][2] = (1 - s3) * (1 + t3) / 4;
+
+        coefs[0][3] = (1 - s4) * (1 - t4) / 4;
+        coefs[1][3] = (1 + s4) * (1 - t4) / 4;
+        coefs[2][3] = (1 + s4) * (1 + t4) / 4;
+        coefs[3][3] = (1 - s4) * (1 + t4) / 4;
+
+        std::vector<double> load_terms_res(4,0);
+
+        // Calculate load terms
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                load_terms_res[i] += integral[j] * coefs[i][j];
+                
+        load_terms = load_terms_res;
+
+        printf("loads");
+        // Define  Gauss points for quad
+        Eigen::Vector3d Gpt1((vertices[0][0] * coefs[0][0] + vertices[1][0] * coefs[1][0] + vertices[2][0] * coefs[2][0] + vertices[3][0] * coefs[3][0]) ,
+            (vertices[0][1] * coefs[0][0] + vertices[1][1] * coefs[1][0] + vertices[2][1] * coefs[2][0] + vertices[3][1] * coefs[3][0]) ,
+            (vertices[0][2] * coefs[0][0] + vertices[1][2] * coefs[1][0] + vertices[2][2] * coefs[2][0] + vertices[3][2] * coefs[3][0]) );
+
+        Eigen::Vector3d Gpt2((vertices[0][0] * coefs[0][1] + vertices[1][0] * coefs[1][1] + vertices[2][0] * coefs[2][1] + vertices[3][0] * coefs[3][1]),
+            (vertices[0][1] * coefs[0][1] + vertices[1][1] * coefs[1][1] + vertices[2][1] * coefs[2][1] + vertices[3][1] * coefs[3][1]),
+            (vertices[0][2] * coefs[0][1] + vertices[1][2] * coefs[1][1] + vertices[2][2] * coefs[2][1] + vertices[3][2] * coefs[3][1]));
+
+        Eigen::Vector3d Gpt3((vertices[0][0] * coefs[0][2] + vertices[1][0] * coefs[1][2] + vertices[2][0] * coefs[2][2] + vertices[3][0] * coefs[3][2]),
+            (vertices[0][1] * coefs[0][2] + vertices[1][1] * coefs[1][2] + vertices[2][1] * coefs[2][2] + vertices[3][1] * coefs[3][2]),
+            (vertices[0][2] * coefs[0][2] + vertices[1][2] * coefs[1][2] + vertices[2][2] * coefs[2][2] + vertices[3][2] * coefs[3][2]));
+
+        Eigen::Vector3d Gpt4((vertices[0][0] * coefs[0][3] + vertices[1][0] * coefs[1][3] + vertices[2][0] * coefs[2][3] + vertices[3][0] * coefs[3][3]),
+            (vertices[0][1] * coefs[0][3] + vertices[1][1] * coefs[1][3] + vertices[2][1] * coefs[2][3] + vertices[3][1] * coefs[3][3]),
+            (vertices[0][2] * coefs[0][3] + vertices[1][2] * coefs[1][3] + vertices[2][2] * coefs[2][3] + vertices[3][2] * coefs[3][3]));
+
+        printf("after quadgauss pts ");
+
+        //std::vector<double> moment_terms(36, 0.0); // Initialize the vector with zeros
+   
+
+        double moments[3][4][3] = { { { calculate_moment(block_centroid, x_local, Gpt1)[0], calculate_moment(block_centroid, x_local, Gpt1)[1], calculate_moment(block_centroid, x_local, Gpt1)[2]},
+                                      { calculate_moment(block_centroid, x_local, Gpt2)[0], calculate_moment(block_centroid, x_local, Gpt2)[1], calculate_moment(block_centroid, x_local, Gpt2)[2] },
+                                      { calculate_moment(block_centroid, x_local, Gpt3)[0], calculate_moment(block_centroid, x_local, Gpt3)[1], calculate_moment(block_centroid, x_local, Gpt3)[2] },
+                                      { calculate_moment(block_centroid, x_local, Gpt4)[0], calculate_moment(block_centroid, x_local, Gpt4)[1], calculate_moment(block_centroid, x_local, Gpt4)[2] }},
+
+                                    { { calculate_moment(block_centroid, y_local, Gpt1)[0], calculate_moment(block_centroid, y_local, Gpt1)[1], calculate_moment(block_centroid, y_local, Gpt1)[2]},
+                                      { calculate_moment(block_centroid, y_local, Gpt2)[0], calculate_moment(block_centroid, y_local, Gpt2)[1], calculate_moment(block_centroid, y_local, Gpt2)[2] },
+                                      { calculate_moment(block_centroid, y_local, Gpt3)[0], calculate_moment(block_centroid, y_local, Gpt3)[1], calculate_moment(block_centroid, y_local, Gpt3)[2] },
+                                      { calculate_moment(block_centroid, y_local, Gpt4)[0], calculate_moment(block_centroid, y_local, Gpt4)[1], calculate_moment(block_centroid, y_local, Gpt4)[2] }},
+
+                                    { { calculate_moment(block_centroid, normal, Gpt1)[0], calculate_moment(block_centroid, normal, Gpt1)[1], calculate_moment(block_centroid, normal, Gpt1)[2]},
+                                      { calculate_moment(block_centroid, normal, Gpt2)[0], calculate_moment(block_centroid, normal, Gpt2)[1], calculate_moment(block_centroid, normal, Gpt2)[2] },
+                                      { calculate_moment(block_centroid, normal, Gpt3)[0], calculate_moment(block_centroid, normal, Gpt3)[1], calculate_moment(block_centroid, normal, Gpt3)[2] },
+                                      { calculate_moment(block_centroid, normal, Gpt4)[0], calculate_moment(block_centroid, normal, Gpt4)[1], calculate_moment(block_centroid, normal, Gpt4)[2] }} };
+
+
+        printf("moments matrix");
+        std::vector<double> moment_terms_res(36, 0.0); // Initialize the vector with zeros
+
+        for (int k = 0; k < 4; ++k) {
+            for (int j = 0; j < 3; ++j) {
+                for (int i = 0; i < 3; ++i) {
+                    double value = (integral[0] * coefs[k][0] * moments[i][0][j] + integral[1] * coefs[k][1] * moments[i][1][j] + integral[2] * coefs[k][2] * moments[i][2][j] + integral[3] * coefs[k][3] * moments[i][3][j]);
+                    std::cout << 9 * k + 3 * j + i << std::endl;
+                    moment_terms_res[9 * k + 3 * j + i] = value;
+
+                }
+            }
+        }
+        printf("moment terms");
+        moment_terms = moment_terms_res;
+        std::cout << moment_terms.size() << std::endl;
+        printVector(moment_terms);
+    }
+    
+
+
+  
+    
 
     return std::make_tuple(load_terms, moment_terms);
 }
@@ -225,7 +410,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
     std::unordered_map<int, int> face_pts_map;
 
     std::unordered_map<int, double> lc_active_faces_map;
-    
+
 
     for (int i = 0; i < active_faces_num; ++i)
         active_faces_map.insert({ active_faces[i],i + 1 });
@@ -252,14 +437,19 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
     // Create points and get tags
     std::vector<size_t> node_tags;
     //double lc = 0.1; // Mesh element size
+    std::vector<int> surfaces_tag;
+
+    gmsh::option::setNumber("Mesh.Algorithm", 8);
+
+
 
     for (int j = 0; j < faces_num; j += 1)
     {
-        double lc = 1;
+        double lc = 100;
 
         if (active_faces_map.find(j + 1) != active_faces_map.end())
             lc = lc_active_faces_map[j + 1];
-            
+
 
 
         for (size_t i = faces_FEpts[j]; i < faces_FEpts[j + 1]; i += 1) {
@@ -299,11 +489,37 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
 
         int surface_tag = gmsh::model::geo::addPlaneSurface({ curve_loop_tag });
 
+        surfaces_tag.push_back(surface_tag);
+
         node_tags.clear(); // Clears the content of the original nodes_tags vector
         line_tags.clear(); // Clears the content of the original nodes_tags vector
 
     }
+
     gmsh::model::geo::synchronize();
+
+  
+    //msh::vectorpair dimTags;
+
+    //std::vector<std::pair<int, int> > dimTags;
+
+  
+   
+    //gmsh::model::occ::getEntities(dimTags, 2);
+    
+  
+    for (int i = 0; i < surfaces_tag.size(); ++i)
+        if (faces_FEpts[i+1] - faces_FEpts[i ] == 4)
+            gmsh::model::mesh::setTransfiniteSurface(surfaces_tag[i]);
+
+
+   gmsh::option::setNumber("Mesh.RecombineAll", 1);
+
+    gmsh::option::setNumber("Mesh.RecombinationAlgorithm", 1);
+
+    gmsh::option::setNumber("Mesh.Recombine3DLevel", 2);
+
+    gmsh::option::setNumber("Mesh.ElementOrder", 1);
 
 
 
@@ -330,33 +546,53 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
     std::vector<int> ContactsTriNum;
 
     int ContactTriNum = 0;
+    int current_contact_pt_num;
+    int current_Ncontact_pt_num;
+
     ContactsTriNum.push_back(0);
 
     std::vector<int> NContactsTriNodes;
     std::vector<int> NContactsTriNum;
+
+    std::vector<int> ContactsNodesNum;
+    std::vector<int> NContactsNodesNum;
+
+    NContactsNodesNum.push_back(0);
+    ContactsNodesNum.push_back(0);
+
     int Ncontact_pt_ind = 1;
     int contact_pt_ind = 1;
-    
+    int elementType;
+
+    int fact;
+
+    int current_tri_pt_num = 0;
+    int current_quad_pt_num = 0;
+
     int NContactTriNum = 0;
     NContactsTriNum.push_back(0);
-    int index = 100;
-    for (int i = 0; i < faces_num; ++i)
+    
+    
+    for (int k = 0; k < faces_num; ++k)
     {
         std::cout << faces_num << std::endl;
         face_pts_map.clear();
 
-        gmsh::model::mesh::getElements(elementTypes, elementTags, nodeTags, 2, i + 1);
+        gmsh::model::mesh::getElements(elementTypes, elementTags, nodeTags, 2, k + 1);
 
+        
 
-
-
-        if (active_faces_map.find(i + 1) != active_faces_map.end())
+        if (active_faces_map.find(k + 1) != active_faces_map.end())
         {
-            active_faces_map[i + 1] = ContactsTriNum.size();
+            active_faces_map[k + 1] = ContactsTriNum.size();
+      
+            for (int i = 0; i < nodeTags.size(); ++i) {
 
-            for (const auto& tags : nodeTags) {
+                elementType = elementTypes[i];
 
-                for (const auto& tag : tags)
+                current_contact_pt_num = nodeTags[i].size();
+
+                for (const auto& tag : nodeTags[i])
                 {
                     if (face_pts_map.find(tag) == face_pts_map.end())
                     {
@@ -364,32 +600,64 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                         Contacts_Points_Coords.push_back(Points_coords[3 * (tag - 1)]);
                         Contacts_Points_Coords.push_back(Points_coords[3 * (tag - 1) + 1]);
                         Contacts_Points_Coords.push_back(Points_coords[3 * (tag - 1) + 2]);
+                        
                         ContactsTriNodes.push_back(contact_pt_ind);
                         face_pts_map.insert({ tag , contact_pt_ind });
 
                         contact_pt_ind++;
+                      
                     }
                     else
                     {
                         ContactsTriNodes.push_back(face_pts_map[tag]);
                     }
 
-                    ContactTriNum += 1;
+                    //ContactTriNum += 1;
                 }
+
+                if (elementType == 2)
+                {
+                    current_tri_pt_num = current_contact_pt_num;
+                    fact = 3;
+                }
+                else
+                {
+                    current_quad_pt_num = current_contact_pt_num;
+                    fact = 4;
+                }
+
+              
+                for (int j=0 ; j < int(current_contact_pt_num / fact) ; ++j)
+                    ContactsNodesNum.push_back(ContactsNodesNum.back() + fact);
+             
+
+                current_contact_pt_num = 0;
+
+                
             }
 
-            ContactsTriNum.push_back(ContactTriNum / 3);
+            ContactsTriNum.push_back(ContactsTriNum.back() + current_tri_pt_num/3 + current_quad_pt_num/4);
+            current_tri_pt_num = 0;
+            current_quad_pt_num = 0;
         }
 
         else
         {
-            printf("entereeeed");
-            for (const auto& tags : nodeTags) {
+            
 
-                for (const auto& tag : tags)
+
+            for (int i = 0; i < nodeTags.size(); ++i) {
+
+                elementType = elementTypes[i];
+           
+                current_Ncontact_pt_num = nodeTags[i].size();
+      
+
+                for (const auto& tag : nodeTags[i])
                 {
                     if (face_pts_map.find(tag) == face_pts_map.end())
                     {
+
                         NContacts_Points_Coords.push_back(Points_coords[3 * (tag - 1)]);
                         NContacts_Points_Coords.push_back(Points_coords[3 * (tag - 1) + 1]);
                         NContacts_Points_Coords.push_back(Points_coords[3 * (tag - 1) + 2]);
@@ -398,22 +666,56 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                         face_pts_map.insert({ tag , Ncontact_pt_ind });
 
                         Ncontact_pt_ind++;
+
                     }
                     else
                     {
                         NContactsTriNodes.push_back(face_pts_map[tag]);
                     }
 
-                    NContactTriNum += 1;
+                    
                 }
+
+                if (elementType == 2)
+                {
+                    current_tri_pt_num = current_Ncontact_pt_num;
+            
+                    fact = 3;
+                }
+                else
+                {
+                    current_quad_pt_num = current_Ncontact_pt_num;
+                
+                    fact = 4;
+                }
+
+                for (int j = 0; j < int(current_Ncontact_pt_num / fact); ++j)
+                {
+                    
+                    NContactsNodesNum.push_back( NContactsNodesNum.back() + fact);
+                }
+
+                current_Ncontact_pt_num = 0;
+
+
             }
 
-            NContactsTriNum.push_back(NContactTriNum / 3);
+            NContactsTriNum.push_back( NContactsTriNum.back() + int(current_tri_pt_num / 3) + int(current_quad_pt_num / 4));
+
+            current_tri_pt_num = 0;
+            current_quad_pt_num = 0;
 
         }
 
     }
         gmsh::finalize();
+
+        printVector(ContactsNodesNum);
+        printVector(ContactsTriNodes);
+        printVector(ContactsTriNum);
+        printVector(Contacts_Points_Coords);
+        std::cout << ContactsTriNodes.size() << std::endl;
+
 
 
 
@@ -430,7 +732,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
 
 
 
-        Eigen::Matrix3d Tri_nodes_coor;
+        std::vector<std::vector<double>> Tri_nodes_coor;
         Eigen::Vector3d normal; // Example normal vector
         Eigen::Vector3d x_local; // Example x_local vector
         Eigen::Vector3d y_local; // Example y_local vector
@@ -456,6 +758,9 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
         std::vector<int> eq_cols;
         std::vector<int> eq_rows;
 
+        std::vector<int> Triangle_nodes;
+        int current_el_pts_num;
+
         for (int i = 0; i < brows; ++i)
         {
             int face_ind = blocks[i * bcols + 1];
@@ -468,7 +773,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             {
                 sign = -1;
             }
-
+          
             if (active_faces_map.find(face_ind) != active_faces_map.end())
 
             {
@@ -479,31 +784,42 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                     sign* c_local_ref[10 * (face_ind - 1) + 1], sign* c_local_ref[10 * (face_ind - 1) + 2], sign* c_local_ref[10 * (face_ind - 1) + 3];
 
 
-
+                
                 block_centroid << blocks_centroid[4 * block_ind - 3], blocks_centroid[4 * block_ind - 2], blocks_centroid[4 * block_ind - 1];
 
                 int face_pos = active_faces_map[face_ind];
 
-
+                std::cout << face_pos << std::endl;
                 for (int Tri_ind = ContactsTriNum[face_pos - 1]; Tri_ind < ContactsTriNum[face_pos]; ++Tri_ind)
-                {
-                    int Triangle_nodes[3] = { ContactsTriNodes[3 * Tri_ind], ContactsTriNodes[3 * Tri_ind + 1], ContactsTriNodes[3 * Tri_ind + 2] };
+                {   
+                    for (int node_ind = ContactsNodesNum[Tri_ind]; node_ind < ContactsNodesNum[Tri_ind + 1]; ++node_ind)
+                        Triangle_nodes.push_back (ContactsTriNodes[ node_ind ] );
+                    
+                    printVector(Triangle_nodes);
 
-
-
-                    Tri_nodes_coor << Contacts_Points_Coords[3 * Triangle_nodes[0] - 3], Contacts_Points_Coords[3 * Triangle_nodes[0] - 2], Contacts_Points_Coords[3 * Triangle_nodes[0] - 1],
-                        Contacts_Points_Coords[3 * Triangle_nodes[1] - 3], Contacts_Points_Coords[3 * Triangle_nodes[1] - 2], Contacts_Points_Coords[3 * Triangle_nodes[1] - 1],
-                        Contacts_Points_Coords[3 * Triangle_nodes[2] - 3], Contacts_Points_Coords[3 * Triangle_nodes[2] - 2], Contacts_Points_Coords[3 * Triangle_nodes[2] - 1];
-
-
-
+                    current_el_pts_num = Triangle_nodes.size();
+                    
+                    for (int ind = 0; ind < Triangle_nodes.size(); ++ind)
+                    {
+                        printf("hellooo");
+                        
+                        std::cout << Triangle_nodes[ind] << std::endl;
+                        std::cout << Contacts_Points_Coords[3 * Triangle_nodes[ind] - 3] << std::endl;
+                        std::cout << Contacts_Points_Coords[3 * Triangle_nodes[ind] - 2] << std::endl;
+                        std::cout << Contacts_Points_Coords[3 * Triangle_nodes[ind] - 1] << std::endl;
+                        Tri_nodes_coor.push_back({ Contacts_Points_Coords[3 * Triangle_nodes[ind] - 3], Contacts_Points_Coords[3 * Triangle_nodes[ind] - 2], Contacts_Points_Coords[3 * Triangle_nodes[ind] - 1] });
+                    }
+                    
+                    for (const auto& el : Tri_nodes_coor)
+                        printVector(el);
 
                     terms_coefs = integral_gauss(Tri_nodes_coor, local_ref, block_centroid, rhos);
+                    printf("hellooopppp");
 
                     loaded_terms_ref = std::get<0>(terms_coefs);
                     moment_terms_ref = std::get<1>(terms_coefs);
                     // fx calc
-                    for (int node = 0; node < 3; ++node)
+                    for (int node = 0; node < current_el_pts_num; ++node)
                     {
                         for (int col = 0; col < 3; ++col)
                         {
@@ -524,7 +840,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                     }
 
                     // fy calc
-                    for (int node = 0; node < 3; ++node)
+                    for (int node = 0; node < current_el_pts_num; ++node)
                     {
                         for (int col = 0; col < 3; ++col)
                         {
@@ -545,7 +861,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                     }
 
                     // fz calc
-                    for (int node = 0; node < 3; ++node)
+                    for (int node = 0; node < current_el_pts_num; ++node)
                     {
                         for (int col = 0; col < 3; ++col)
                         {
@@ -566,7 +882,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                     }
 
                     // mx calc
-                    for (int node = 0; node < 3; ++node)
+                    for (int node = 0; node < current_el_pts_num; ++node)
                     {
                         for (int col = 0; col < 3; ++col)
                         {
@@ -587,7 +903,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                     }
 
                     // my calc
-                    for (int node = 0; node < 3; ++node)
+                    for (int node = 0; node < current_el_pts_num; ++node)
                     {
                         for (int col = 3; col < 6; ++col)
                         {
@@ -608,7 +924,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                     }
 
                     // mz calc
-                    for (int node = 0; node < 3; ++node)
+                    for (int node = 0; node < current_el_pts_num; ++node)
                     {
                         for (int col = 6; col < 9; ++col)
                         {
@@ -627,7 +943,8 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
                             }
                         }
                     }
-
+                    Triangle_nodes.clear();
+                    Tri_nodes_coor.clear();
                 }
 
 
@@ -720,6 +1037,8 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
         double* Points_coords_pt = new double[Contacts_Points_Coords.size() + 1];
         int* TriNodes_pt = new int[ContactsTriNodes.size() + 1];
         int* FacesTriNum_pt = new int[ContactsTriNum.size() + 1];
+        int* ContactsNodesNum_pt = new int[ContactsNodesNum.size() + 1];
+      
 
         for (size_t i = 0; i < Contacts_Points_Coords.size(); ++i) {
             Points_coords_pt[i] = Contacts_Points_Coords[i];
@@ -733,9 +1052,20 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             FacesTriNum_pt[i] = ContactsTriNum[i];
         }
 
+        for (size_t i = 0; i < ContactsNodesNum.size(); ++i) {
+            ContactsNodesNum_pt[i] = ContactsNodesNum[i];
+        }
+
+        printVector(ContactsTriNodes);
+        printVector(NContactsTriNodes);
+
+        printVector(ContactsNodesNum);
+        printVector(NContactsNodesNum);
+
         A.ContactsPointsCoords = Points_coords_pt;
         A.ContactsTriNodes = TriNodes_pt;
         A.ContactsTriNum = FacesTriNum_pt;
+        A.ContactsNodesNum = ContactsNodesNum_pt;
         A.Contacts_pts_num = int((Contacts_Points_Coords.size()) / 3);
 
         
@@ -746,6 +1076,7 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
         double* NPoints_coords_pt = new double[NContacts_Points_Coords.size() + 1];
         int* NTriNodes_pt = new int[NContactsTriNodes.size() + 1];
         int* NFacesTriNum_pt = new int[NContactsTriNum.size() + 1];
+        int* NContactsNodesNum_pt = new int[NContactsNodesNum.size() + 1];
 
         for (size_t i = 0; i < NContacts_Points_Coords.size(); ++i) {
             NPoints_coords_pt[i] = NContacts_Points_Coords[i];
@@ -759,9 +1090,14 @@ Output print_hello_c(double* blocks, int brows, int bcols, int blocks_num, doubl
             NFacesTriNum_pt[i] = NContactsTriNum[i];
         }
 
+        for (size_t i = 0; i < NContactsNodesNum.size(); ++i) {
+            NContactsNodesNum_pt[i] = NContactsNodesNum[i];
+        }
+
         A.NContactsPointsCoords = NPoints_coords_pt;
         A.NContactsTriNodes = NTriNodes_pt;
         A.NContactsTriNum = NFacesTriNum_pt;
+        A.NContactsNodesNum = NContactsNodesNum_pt;
         A.NContacts_pts_num = int((NContacts_Points_Coords.size()) / 3);
 
         
