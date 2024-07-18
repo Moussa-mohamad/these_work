@@ -1,0 +1,19 @@
+{
+  "lc": 1,
+  "lc_ncn": 1,
+  "blocks_density": 20, 
+  "c": 10000,
+  "friction_ang": 33,
+  "fc": false,
+  "ft": 5000000,
+  "seisme":false,
+  "self_weight_failure": true,
+  "tri_mesh": 0,
+  "lower_bound_calc": true,
+  "upper_bound_calc": false,
+  "lb_non_ass_calc": false,
+  "ub_non_ass_calc": false,
+  "beta": 0.6,
+  "alpha": 0.3,
+  "tolerance": 0.001
+}
